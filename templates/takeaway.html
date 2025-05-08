@@ -331,21 +331,15 @@
                                 <h5>Payment Method</h5>
                                 <div class="mb-3">
                                     <div class="form-check mb-2">
-                                        {{ form.payment_method(class="form-check-input", id="payment_pickup", value="pickup", checked=true) }}
-                                        <label class="form-check-label" for="payment_pickup">
-                                            <i class="fas fa-store me-2"></i> Pay on Pickup
+                                        {{ form.payment_method(class="form-check-input", id="payment_counter", value="counter", checked=true) }}
+                                        <label class="form-check-label" for="payment_counter">
+                                            <i class="fas fa-cash-register me-2"></i> Pay at Counter
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        {{ form.payment_method(class="form-check-input", id="payment_cod", value="cash-on-delivery") }}
-                                        <label class="form-check-label" for="payment_cod">
-                                            <i class="fas fa-money-bill-wave me-2"></i> Cash on Delivery
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        {{ form.payment_method(class="form-check-input", id="payment_upi", value="upi") }}
-                                        <label class="form-check-label" for="payment_upi">
-                                            <i class="fas fa-mobile-alt me-2"></i> UPI Payment
+                                        {{ form.payment_method(class="form-check-input", id="payment_qr_code", value="qr_code") }}
+                                        <label class="form-check-label" for="payment_qr_code">
+                                            <i class="fas fa-qrcode me-2"></i> QR Code Payment at Pickup
                                         </label>
                                     </div>
                                 </div>
@@ -392,13 +386,9 @@
                             <span>Subtotal</span>
                             <span id="checkout-subtotal">₹0.00</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between mb-3">
                             <span>Taxes (5%)</span>
                             <span id="checkout-taxes">₹0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span>Delivery Fee</span>
-                            <span id="checkout-delivery">₹0.00</span>
                         </div>
                         
                         <div class="d-flex justify-content-between fw-bold">
@@ -597,13 +587,11 @@
                             
                             // Calculate taxes and total
                             const taxes = subtotal * 0.05;
-                            const deliveryFee = document.getElementById('order_type_delivery').checked ? 40 : 0;
-                            const total = subtotal + taxes + deliveryFee;
+                            const total = subtotal + taxes;
                             
                             // Update summary
                             checkoutSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
                             checkoutTaxes.textContent = `₹${taxes.toFixed(2)}`;
-                            checkoutDelivery.textContent = deliveryFee > 0 ? `₹${deliveryFee.toFixed(2)}` : 'Free';
                             checkoutTotal.textContent = `₹${total.toFixed(2)}`;
                         }
                     }
@@ -614,51 +602,20 @@
                 });
         }
         
-        // Toggle delivery address when order type changes
-        const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
-        const addressSelectContainer = document.getElementById('address-select-container');
-        const checkoutDelivery = document.getElementById('checkout-delivery');
+        // Show QR code when QR payment is selected
+        const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+        const qrCodeSection = document.getElementById('upi-payment-section');
         
-        if (orderTypeRadios.length > 0 && addressSelectContainer) {
-            orderTypeRadios.forEach(radio => {
+        if (paymentMethodRadios.length > 0 && qrCodeSection) {
+            paymentMethodRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
-                    if (this.value === 'delivery') {
-                        addressSelectContainer.classList.remove('d-none');
-                        
-                        // Update delivery fee
-                        if (checkoutDelivery) {
-                            checkoutDelivery.textContent = '₹40.00';
-                            updateCheckoutTotal();
-                        }
+                    if (this.value === 'qr_code') {
+                        qrCodeSection.classList.remove('d-none');
                     } else {
-                        addressSelectContainer.classList.add('d-none');
-                        
-                        // Update delivery fee
-                        if (checkoutDelivery) {
-                            checkoutDelivery.textContent = 'Free';
-                            updateCheckoutTotal();
-                        }
+                        qrCodeSection.classList.add('d-none');
                     }
                 });
             });
-        }
-        
-        // Update checkout total when delivery fee changes
-        function updateCheckoutTotal() {
-            const checkoutSubtotal = document.getElementById('checkout-subtotal');
-            const checkoutTaxes = document.getElementById('checkout-taxes');
-            const checkoutDelivery = document.getElementById('checkout-delivery');
-            const checkoutTotal = document.getElementById('checkout-total');
-            
-            if (checkoutSubtotal && checkoutTaxes && checkoutDelivery && checkoutTotal) {
-                const subtotal = parseFloat(checkoutSubtotal.textContent.replace('₹', ''));
-                const taxes = parseFloat(checkoutTaxes.textContent.replace('₹', ''));
-                const deliveryFee = checkoutDelivery.textContent === 'Free' ? 0 : parseFloat(checkoutDelivery.textContent.replace('₹', ''));
-                
-                const total = subtotal + taxes + deliveryFee;
-                
-                checkoutTotal.textContent = `₹${total.toFixed(2)}`;
-            }
         }
         
         // Place order form submission
