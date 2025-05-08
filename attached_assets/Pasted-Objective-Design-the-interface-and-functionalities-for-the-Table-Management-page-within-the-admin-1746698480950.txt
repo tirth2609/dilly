@@ -1,0 +1,62 @@
+Objective: Design the interface and functionalities for the "Table Management" page within the admin panel of the vegetarian restaurant website. This page should allow administrators to manage the restaurant's physical tables effectively.
+
+Key Features and Elements:
+
+Table Listing:
+
+Display: Present a clear and organized list of all tables in the restaurant.
+Columns: Each table entry should display the following information:
+Table Number/ID: A unique identifier for each table.
+Capacity: The maximum number of guests that can be seated at the table.
+Status: The current status of the table (e.g., Available, Occupied, Reserved, Unavailable/Out of Service).
+QR Code Status: Indicate if a QR code has been generated and is active for the table.
+Actions: A column containing buttons or links to perform actions on individual tables (Edit, View QR Code, Deactivate/Activate).
+Filtering: Allow administrators to filter the table list based on:
+Status (All, Available, Occupied, Reserved, Unavailable)
+Capacity (e.g., filter for tables seating 2, 4, 6+ guests)
+Sorting: Enable sorting of the table list by any of the displayed columns (e.g., sort by Table Number, Capacity).
+Pagination: Implement pagination if there is a large number of tables to ensure efficient loading and navigation.
+Add New Table:
+
+Provide a clear form to add new tables to the system.
+Fields: The form should include fields for:
+Table Number/ID: (Mandatory, with potential validation to ensure uniqueness)
+Capacity: (Mandatory, using a numerical input)
+Description (Optional): A free-text field for any internal notes or descriptions about the table (e.g., "near the window," "high chair available").
+Edit Table Information:
+
+Allow administrators to modify the details of existing tables.
+Functionality: When an "Edit" action is selected for a table, a form should appear (either inline or in a modal) pre-filled with the table's current information.
+Editable Fields: The same fields as in the "Add New Table" form should be editable.
+Generate and Download QR Codes:
+
+Generation: Provide a mechanism to generate QR codes for individual tables or for a selected group of tables.
+Download: Allow administrators to download the generated QR codes in a common image format (e.g., PNG, SVG) or as a printable PDF.
+Bulk Actions: Ideally, allow bulk generation and download of QR codes for multiple selected tables.
+Visual Table Layout (Optional but Highly Recommended):
+
+Display: A visual representation of the restaurant's floor plan, showing the approximate location and arrangement of tables.
+Interaction: Allow administrators to:
+View table status directly on the layout.
+Potentially drag and drop tables to adjust the layout (if the system needs to reflect physical changes).
+Click on a table in the layout to view its details or perform actions (Edit, etc.).
+Customization: Provide options to configure the layout (e.g., number of zones, orientation).
+Table Status Management:
+
+Manual Update: Allow administrators to manually update the status of a table (e.g., mark as Occupied, Available, Unavailable). This could be done via dropdowns or buttons associated with each table in the list or through the visual layout.
+Search Functionality:
+
+Implement a search bar to quickly find tables based on Table Number/ID or Description.
+User Experience Considerations:
+
+Intuitive Interface: The page should be easy to navigate and understand for restaurant staff.
+Clear Visual Hierarchy: Important information and actions should be easily identifiable.
+Responsiveness: The layout should adapt well to different screen sizes.
+Feedback: Provide clear feedback to the administrator after performing actions (e.g., "Table updated successfully," "QR code generated").
+Specific Questions for the AI (to guide its design thinking):
+
+How should the visual table layout be implemented for optimal usability?
+What are the best practices for generating and managing QR codes within the admin panel?
+How can bulk actions (e.g., generating QR codes, updating status) be implemented efficiently?
+What kind of validation should be implemented for the "Table Number/ID" field to ensure uniqueness and appropriate formatting?
+How should the "Unavailable/Out of Service" status be handled and displayed?

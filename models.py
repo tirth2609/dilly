@@ -136,3 +136,20 @@ class OrderItem(db.Model):
     
     def __repr__(self):
         return f'<OrderItem {self.id}: {self.menu_item_id}, Qty: {self.quantity}>'
+
+class Table(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    table_number = db.Column(db.String(10), unique=True, nullable=False)
+    capacity = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), default='Available')  # Available, Occupied, Reserved, Unavailable
+    description = db.Column(db.Text, nullable=True)
+    qr_code_active = db.Column(db.Boolean, default=True)
+    position_x = db.Column(db.Integer, nullable=True)  # For visual layout positioning
+    position_y = db.Column(db.Integer, nullable=True)  # For visual layout positioning
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # We'll make table_number in Order table reference this table later
+    # orders = db.relationship('Order', backref='table', lazy=True, foreign_keys='Order.table_number')
+    
+    def __repr__(self):
+        return f'<Table {self.table_number}, Capacity: {self.capacity}, Status: {self.status}>'

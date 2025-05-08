@@ -639,7 +639,11 @@ def init_routes(app):
     @login_required
     @admin_required
     def admin_settings():
-        return render_template('admin/settings.html', datetime=datetime)
+        # Create a dummy form for CSRF protection
+        class SettingsForm(FlaskForm):
+            pass
+        form = SettingsForm()
+        return render_template('admin/settings.html', datetime=datetime, form=form)
     
     # Placeholder settings update routes
     @app.route('/admin/update-restaurant-settings', methods=['POST'])

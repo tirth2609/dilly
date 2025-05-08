@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, SelectField
 from wtforms import IntegerField, DateField, TimeField, FloatField, RadioField, HiddenField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional, NumberRange
 from models import User
 from datetime import datetime, time
 
@@ -109,3 +109,18 @@ class OrderForm(FlaskForm):
 class TrackOrderForm(FlaskForm):
     order_id = StringField('Order ID', validators=[DataRequired()])
     submit = SubmitField('Track Order')
+    
+class TableForm(FlaskForm):
+    table_number = StringField('Table Number/ID', validators=[DataRequired(), Length(min=1, max=10)])
+    capacity = IntegerField('Capacity', validators=[DataRequired(), NumberRange(min=1, max=100)])
+    status = SelectField('Status', choices=[
+        ('Available', 'Available'),
+        ('Occupied', 'Occupied'),
+        ('Reserved', 'Reserved'),
+        ('Unavailable', 'Unavailable')
+    ], validators=[DataRequired()])
+    description = TextAreaField('Description (Optional)', validators=[Optional(), Length(max=500)])
+    qr_code_active = BooleanField('QR Code Active', default=True)
+    position_x = IntegerField('Position X', validators=[Optional()])
+    position_y = IntegerField('Position Y', validators=[Optional()])
+    submit = SubmitField('Save Table')
