@@ -88,10 +88,8 @@ def init_routes(app):
         is_jain = 'is_jain' in request.form
         is_available = 'is_available' in request.form
         
-        # Handle image upload
+        # Get image URL
         image_url = request.form.get('image_url', '')
-        if 'image' in request.files and request.files['image'].filename:
-            image_url = save_image(request.files['image'])
             
         # Create new menu item
         menu_item = MenuItem(
@@ -112,6 +110,93 @@ def init_routes(app):
         flash(f'Menu item "{name}" has been added successfully.', 'success')
         return redirect(url_for('admin_menu_items'))
     
+    @app.route('/admin/menu-items/bulk-add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_bulk_add_menu_items():
+        bulk_items = request.form.get('bulk_items', '')
+        default_category_id = request.form.get('default_category_id', '')
+        all_available = 'all_available' in request.form
+        
+        if not bulk_items.strip():
+            flash('No items provided for bulk addition.', 'warning')
+            return redirect(url_for('admin_menu_items'))
+        
+        # Process each line
+        lines = bulk_items.strip().split('\n')
+        added_count = 0
+        error_count = 0
+        
+        for line in lines:
+            if not line.strip():
+                continue
+                
+            parts = [part.strip() for part in line.split('|')]
+            
+            try:
+                # Ensure we have at least name, description, price
+                if len(parts) < 3:
+                    error_count += 1
+                    continue
+                    
+                name = parts[0]
+                description = parts[1]
+                price = float(parts[2])
+                
+                # Get category ID (use default if not provided)
+                category_id = default_category_id
+                if len(parts) > 3 and parts[3].strip():
+                    category_id = parts[3]
+                
+                # Get image URL if provided
+                image_url = ''
+                if len(parts) > 4 and parts[4].strip():
+                    image_url = parts[4]
+                
+                # Get dietary options if provided
+                is_vegan = False
+                if len(parts) > 5 and parts[5].strip() in ['1', 'true', 'True', 'yes', 'Yes']:
+                    is_vegan = True
+                    
+                is_gluten_free = False
+                if len(parts) > 6 and parts[6].strip() in ['1', 'true', 'True', 'yes', 'Yes']:
+                    is_gluten_free = True
+                    
+                is_jain = False
+                if len(parts) > 7 and parts[7].strip() in ['1', 'true', 'True', 'yes', 'Yes']:
+                    is_jain = True
+                
+                # Create new menu item
+                menu_item = MenuItem(
+                    name=name,
+                    description=description,
+                    price=price,
+                    category_id=category_id,
+                    image_url=image_url,
+                    is_vegan=is_vegan,
+                    is_gluten_free=is_gluten_free,
+                    is_jain=is_jain,
+                    is_available=all_available
+                )
+                
+                db.session.add(menu_item)
+                added_count += 1
+                
+            except Exception as e:
+                error_count += 1
+                print(f"Error adding item '{line}': {str(e)}")
+        
+        # Commit all changes at once
+        if added_count > 0:
+            db.session.commit()
+            
+        if error_count > 0:
+            flash(f'Added {added_count} menu items successfully. {error_count} items had errors and were skipped.', 'warning')
+        else:
+            flash(f'Added {added_count} menu items successfully.', 'success')
+            
+        return redirect(url_for('admin_menu_items'))
+    
     @app.route('/admin/menu-items/edit', methods=['POST'])
     @login_required
     @admin_required
@@ -128,9 +213,10 @@ def init_routes(app):
         menu_item.is_jain = 'is_jain' in request.form
         menu_item.is_available = 'is_available' in request.form
         
-        # Handle image upload
-        if 'image' in request.files and request.files['image'].filename:
-            menu_item.image_url = save_image(request.files['image'])
+        # Handle image URL
+        image_url = request.form.get('image_url')
+        if image_url:
+            menu_item.image_url = image_url
             
         db.session.commit()
         

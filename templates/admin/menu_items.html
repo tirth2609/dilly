@@ -391,6 +391,75 @@
 </div>
 {% endblock %}
 
+<!-- Bulk Add Menu Items Modal -->
+<div class="modal fade" id="bulkAddMenuItemModal" tabindex="-1" aria-labelledby="bulkAddMenuItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_bulk_add_menu_items') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bulkAddMenuItemModalLabel">Bulk Add Menu Items</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Enter one menu item per line in the format:
+                        <code>Name | Description | Price | Category ID | Image URL | Is Vegan (0/1) | Is Gluten Free (0/1) | Is Jain (0/1)</code>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bulk_category_id" class="form-label">Default Category (optional)</label>
+                        <select class="form-select" id="bulk_category_id" name="default_category_id">
+                            <option value="">Select a default category</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">If specified, this category will be used for items that don't have a category ID in their line.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bulk_items" class="form-label">Menu Items Data</label>
+                        <textarea class="form-control" id="bulk_items" name="bulk_items" rows="10" placeholder="Panner Tikka | Tasty paneer grilled in tandoor | 229 | 3 | https://example.com/paneer.jpg | 1 | 0 | 1"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Available Categories</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Category Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for category in categories %}
+                                    <tr>
+                                        <td>{{ category.id }}</td>
+                                        <td>{{ category.name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="all_available" name="all_available" value="true" checked>
+                            <label class="form-check-label" for="all_available">Mark all items as Available</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Items</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
