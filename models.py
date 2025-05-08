@@ -109,18 +109,16 @@ class Order(db.Model):
     name = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
-    order_type = db.Column(db.String(32), nullable=False)  # dine-in, takeaway
-    table_number = db.Column(db.Integer, nullable=True)  # For dine-in orders
-    address_id = db.Column(db.Integer, db.ForeignKey('address.id'), nullable=True)  # For delivery orders
+    order_type = db.Column(db.String(32), default='takeaway')  # Always takeaway
+    table_number = db.Column(db.Integer, nullable=True)  # For future dine-in orders if needed
     special_instructions = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(32), default='pending')  # pending, preparing, ready, completed, cancelled
     total_amount = db.Column(db.Float, nullable=False)  # Total in INR
-    payment_method = db.Column(db.String(32), nullable=False)  # counter, cash-on-delivery, pickup, upi
+    payment_method = db.Column(db.String(32), nullable=False)  # counter, qr_code
     payment_status = db.Column(db.String(32), default='pending')  # pending, completed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    address = db.relationship('Address', backref='orders', lazy=True)
     items = db.relationship('OrderItem', backref='order', lazy=True)
     
     def __repr__(self):

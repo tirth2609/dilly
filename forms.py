@@ -101,15 +101,11 @@ class OrderForm(FlaskForm):
     name = StringField('Full Name', validators=[DataRequired(), Length(max=128)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone = StringField('Phone Number', validators=[DataRequired(), Length(min=10, max=15)])
-    order_type = RadioField('Order Type', choices=[('takeaway', 'Takeaway'), ('delivery', 'Delivery')], default='takeaway')
-    address_id = SelectField('Delivery Address', coerce=int, validators=[Optional()])
     special_instructions = TextAreaField('Special Instructions')
     payment_method = RadioField('Payment Method', choices=[
         ('counter', 'Pay at Counter'), 
-        ('cash-on-delivery', 'Cash on Delivery'),
-        ('pickup', 'Pay on Pickup'),
-        ('upi', 'UPI Payment')
-    ], default='pickup')
+        ('qr_code', 'QR Code Payment at Pickup')
+    ], default='counter')
     submit = SubmitField('Place Order')
 
 class TrackOrderForm(FlaskForm):

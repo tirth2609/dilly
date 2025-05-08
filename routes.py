@@ -1291,14 +1291,6 @@ def init_routes(app):
         
         form = OrderForm()
         
-        # If user is logged in, populate address choices
-        if current_user.is_authenticated:
-            addresses = Address.query.filter_by(user_id=current_user.id).all()
-            form.address_id.choices = [(a.id, f"{a.address_line1}, {a.city} - {a.postal_code}") for a in addresses]
-            form.address_id.choices.insert(0, (0, 'Select an address'))
-        else:
-            form.address_id.choices = [(0, 'Please log in to use saved addresses')]
-        
         return render_template('takeaway.html', 
                               categories=categories, 
                               menu_items=menu_items,
@@ -1308,14 +1300,6 @@ def init_routes(app):
     @app.route('/takeaway/place-order', methods=['POST'])
     def place_takeaway_order():
         form = OrderForm()
-        
-        # If user is logged in, populate address choices
-        if current_user.is_authenticated:
-            addresses = Address.query.filter_by(user_id=current_user.id).all()
-            form.address_id.choices = [(a.id, f"{a.address_line1}, {a.city} - {a.postal_code}") for a in addresses]
-            form.address_id.choices.insert(0, (0, 'Select an address'))
-        else:
-            form.address_id.choices = [(0, 'Please log in to use saved addresses')]
         
         if form.validate_on_submit():
             # Get cart from session
@@ -1333,27 +1317,12 @@ def init_routes(app):
                     return redirect(url_for('takeaway'))
                 total_amount += menu_item.price * item['quantity']
                 
-            # Validate address for delivery
-            if form.order_type.data == 'delivery':
-                address_id = form.address_id.data
-                if address_id == 0:
-                    flash('Please select a delivery address.', 'danger')
-                    return redirect(url_for('takeaway'))
-                    
-                address = Address.query.get(address_id)
-                if not address or (current_user.is_authenticated and address.user_id != current_user.id):
-                    flash('Invalid delivery address.', 'danger')
-                    return redirect(url_for('takeaway'))
-            else:
-                address_id = None
-                
-            # Create order
+            # Create order - always takeaway
             order = Order(
                 name=form.name.data,
                 email=form.email.data,
                 phone=form.phone.data,
-                order_type=form.order_type.data,
-                address_id=address_id,
+                order_type='takeaway',
                 special_instructions=form.special_instructions.data,
                 total_amount=total_amount,
                 payment_method=form.payment_method.data,
