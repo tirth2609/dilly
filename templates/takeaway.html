@@ -284,14 +284,14 @@
     </div>
 </section>
 
-<!-- Checkout Section (Hidden initially) -->
+<!-- Order Section (Hidden initially) -->
 <section class="py-5 d-none" id="checkout-section">
     <div class="container">
         <div class="row">
             <div class="col-lg-8">
                 <div class="card border-0 shadow mb-4">
                     <div class="card-body p-4">
-                        <h3 class="mb-4">Checkout</h3>
+                        <h3 class="mb-4">Place Order</h3>
                         
                         <form method="POST" action="{{ url_for('place_takeaway_order') }}" id="order-form">
                             {{ form.hidden_tag() }}
@@ -535,23 +535,23 @@
             });
         }
         
-        // Proceed to checkout
-        const proceedToCheckoutBtn = document.getElementById('proceed-to-checkout-btn');
+        // Proceed to place order
+        const placeOrderBtn = document.getElementById('proceed-to-checkout-btn');
         const menuSection = document.getElementById('menu-section');
         const checkoutSection = document.getElementById('checkout-section');
         const backToMenuBtn = document.getElementById('back-to-menu-btn');
         
-        if (proceedToCheckoutBtn && menuSection && checkoutSection && backToMenuBtn) {
-            proceedToCheckoutBtn.addEventListener('click', function() {
+        if (placeOrderBtn && menuSection && checkoutSection && backToMenuBtn) {
+            placeOrderBtn.addEventListener('click', function() {
                 // Update step indicator
                 document.getElementById('step-1').classList.remove('active');
                 document.getElementById('step-1').classList.add('completed');
                 document.getElementById('step-2').classList.add('active');
                 
-                // Update checkout summary
+                // Update order summary
                 updateCheckoutSummary();
                 
-                // Hide menu section, show checkout section
+                // Hide menu section, show order section
                 menuSection.classList.add('d-none');
                 checkoutSection.classList.remove('d-none');
                 
@@ -565,7 +565,7 @@
                 document.getElementById('step-1').classList.remove('completed');
                 document.getElementById('step-1').classList.add('active');
                 
-                // Hide checkout section, show menu section
+                // Hide order section, show menu section
                 checkoutSection.classList.add('d-none');
                 menuSection.classList.remove('d-none');
                 
