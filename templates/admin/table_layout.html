@@ -1,0 +1,283 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Table Layout Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                    <h6>Table Layout Management</h6>
+                    <a href="{{ url_for('admin_tables') }}" class="btn btn-secondary btn-sm mb-0">Back to Tables</a>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Visual Table Layout</h6>
+                        <p>Drag and drop tables to create a visual layout of your restaurant. This helps staff quickly locate tables and manage reservations more effectively.</p>
+                    </div>
+                    
+                    <div class="layout-actions mb-3">
+                        <button class="btn btn-success" id="saveLayout">
+                            <i class="fas fa-save me-2"></i> Save Layout
+                        </button>
+                        <button class="btn btn-secondary" id="resetLayout">
+                            <i class="fas fa-sync-alt me-2"></i> Reset Layout
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-9">
+                            <div class="layout-container border rounded p-3" id="layoutContainer" style="height: 600px; position: relative; background-color: #f8f9fa; background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2UyZThlYiIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');">
+                                
+                                {% for table in tables %}
+                                <div class="table-item draggable" 
+                                    id="table-{{ table.id }}" 
+                                    data-id="{{ table.id }}"
+                                    data-number="{{ table.table_number }}"
+                                    data-capacity="{{ table.capacity }}"
+                                    data-status="{{ table.status }}"
+                                    style="position: absolute; 
+                                           top: {{ table.position_y|default(50, true) }}px; 
+                                           left: {{ table.position_x|default(50, true) }}px; 
+                                           padding: 10px; 
+                                           width: 80px; 
+                                           height: 80px; 
+                                           border-radius: 50%; 
+                                           text-align: center; 
+                                           cursor: move;
+                                           {% if table.status == 'Available' %}
+                                           background-color: rgba(76, 175, 80, 0.8);
+                                           {% elif table.status == 'Occupied' %}
+                                           background-color: rgba(244, 67, 54, 0.8);
+                                           {% elif table.status == 'Reserved' %}
+                                           background-color: rgba(255, 193, 7, 0.8);
+                                           {% else %}
+                                           background-color: rgba(158, 158, 158, 0.8);
+                                           {% endif %}
+                                           color: white;
+                                           display: flex;
+                                           flex-direction: column;
+                                           justify-content: center;
+                                           align-items: center;
+                                           font-weight: bold;
+                                           box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                    <div>{{ table.table_number }}</div>
+                                    <small>{{ table.capacity }} seats</small>
+                                </div>
+                                {% endfor %}
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Legend</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div style="width: 20px; height: 20px; background-color: rgba(76, 175, 80, 0.8); border-radius: 50%; margin-right: 8px;"></div>
+                                        <span>Available</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div style="width: 20px; height: 20px; background-color: rgba(244, 67, 54, 0.8); border-radius: 50%; margin-right: 8px;"></div>
+                                        <span>Occupied</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div style="width: 20px; height: 20px; background-color: rgba(255, 193, 7, 0.8); border-radius: 50%; margin-right: 8px;"></div>
+                                        <span>Reserved</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div style="width: 20px; height: 20px; background-color: rgba(158, 158, 158, 0.8); border-radius: 50%; margin-right: 8px;"></div>
+                                        <span>Unavailable</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mt-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Selected Table</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="selectedTableInfo">
+                                        <p class="text-muted mb-0">Click on a table to see details</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mt-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Tips</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="ps-3">
+                                        <li>Drag tables to arrange them</li>
+                                        <li>Click on a table to select it</li>
+                                        <li>Click "Save Layout" when done</li>
+                                        <li>Update table status from the Tables page</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedTable = null;
+        const layoutContainer = document.getElementById('layoutContainer');
+        const saveButton = document.getElementById('saveLayout');
+        const resetButton = document.getElementById('resetLayout');
+        const selectedTableInfo = document.getElementById('selectedTableInfo');
+        
+        // Initialize interactjs for draggable tables
+        interact('.draggable').draggable({
+            inertia: true,
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: 'parent',
+                    endOnly: true
+                })
+            ],
+            autoScroll: true,
+            listeners: {
+                move: dragMoveListener,
+                end: function(event) {
+                    // Update the element's attributes
+                    const target = event.target;
+                    const x = parseFloat(target.getAttribute('data-x')) || 0;
+                    const y = parseFloat(target.getAttribute('data-y')) || 0;
+                    
+                    // Update the element's position
+                    const rect = layoutContainer.getBoundingClientRect();
+                    const tableId = target.getAttribute('data-id');
+                    
+                    // Update selected table info if this is the selected table
+                    if (selectedTable && selectedTable.id === target.id) {
+                        updateSelectedTableInfo(target);
+                    }
+                }
+            }
+        });
+        
+        function dragMoveListener(event) {
+            const target = event.target;
+            // Get current position
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            // Update position
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+        }
+        
+        // Add click event to select a table
+        document.querySelectorAll('.table-item').forEach(table => {
+            table.addEventListener('click', function(event) {
+                // Prevent click from triggering drag
+                event.stopPropagation();
+                
+                // Remove selected class from previously selected table
+                if (selectedTable) {
+                    selectedTable.classList.remove('selected');
+                    selectedTable.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                }
+                
+                // Set new selected table
+                this.classList.add('selected');
+                this.style.boxShadow = '0 0 0 3px #3498db, 0 4px 6px rgba(0,0,0,0.1)';
+                selectedTable = this;
+                
+                // Update selected table info
+                updateSelectedTableInfo(this);
+            });
+        });
+        
+        function updateSelectedTableInfo(table) {
+            const tableId = table.getAttribute('data-id');
+            const tableNumber = table.getAttribute('data-number');
+            const capacity = table.getAttribute('data-capacity');
+            const status = table.getAttribute('data-status');
+            
+            // Get position relative to container
+            const rect = layoutContainer.getBoundingClientRect();
+            const x = (parseFloat(table.getAttribute('data-x')) || 0) + parseInt(table.style.left);
+            const y = (parseFloat(table.getAttribute('data-y')) || 0) + parseInt(table.style.top);
+            
+            // Update info panel
+            selectedTableInfo.innerHTML = `
+                <p><strong>Table Number:</strong> ${tableNumber}</p>
+                <p><strong>Capacity:</strong> ${capacity} guests</p>
+                <p><strong>Status:</strong> ${status}</p>
+                <p><strong>Position:</strong> X: ${Math.round(x)}px, Y: ${Math.round(y)}px</p>
+                <div class="mt-3">
+                    <a href="/admin/tables/edit/${tableId}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit me-1"></i> Edit Table
+                    </a>
+                </div>
+            `;
+        }
+        
+        // Save layout button
+        saveButton.addEventListener('click', function() {
+            const tablePositions = [];
+            
+            document.querySelectorAll('.table-item').forEach(table => {
+                const tableId = parseInt(table.getAttribute('data-id'));
+                // Calculate absolute position
+                const x = (parseFloat(table.getAttribute('data-x')) || 0) + parseInt(table.style.left);
+                const y = (parseFloat(table.getAttribute('data-y')) || 0) + parseInt(table.style.top);
+                
+                tablePositions.push({
+                    id: tableId,
+                    x: Math.round(x),
+                    y: Math.round(y)
+                });
+            });
+            
+            // Send data to server
+            fetch('{{ url_for("admin_update_table_layout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(tablePositions)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Layout saved successfully!');
+                } else {
+                    alert('Error saving layout: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving layout. Please try again.');
+            });
+        });
+        
+        // Reset layout button
+        resetButton.addEventListener('click', function() {
+            if (confirm('Reset all table positions? This will clear your current layout.')) {
+                document.querySelectorAll('.table-item').forEach(table => {
+                    // Reset transform
+                    table.style.transform = 'translate(0px, 0px)';
+                    table.removeAttribute('data-x');
+                    table.removeAttribute('data-y');
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
