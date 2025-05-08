@@ -745,8 +745,7 @@
                 document.getElementById('order-details').style.display = 'none';
                 
                 // In a real app, this would make an AJAX call to get order details
-                // For demo purposes, we'll simulate the data fetch with a timeout
-                setTimeout(() => {
+                // Get the order details
                     // Get data from the table row (in a real app, this data would come from an API call)
                     const row = this.closest('tr');
                     const orderIdText = row.querySelector('td:nth-child(1)').textContent;

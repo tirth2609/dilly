@@ -1366,7 +1366,9 @@ def init_routes(app):
     @app.route('/order/success/<int:order_id>')
     def order_success(order_id):
         order = Order.query.get_or_404(order_id)
-        return render_template('order_success.html', order=order, datetime=datetime)
+        # Get featured items for recommendations
+        featured_items = MenuItem.query.filter_by(is_available=True).limit(3).all()
+        return render_template('order_success.html', order=order, datetime=datetime, featured_items=featured_items)
     
     @app.route('/track-order', methods=['GET', 'POST'])
     def track_order():
