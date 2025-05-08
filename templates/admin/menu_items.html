@@ -1,23 +1,9 @@
-{% extends "layout.html" %}
+{% extends "admin/base.html" %}
 
 {% block title %}Manage Menu Items - Admin Dashboard{% endblock %}
 
-{% block extra_css %}
+{% block extra_styles %}
 <style>
-    .sidebar {
-        height: calc(100vh - 75px);
-        position: sticky;
-        top: 75px;
-    }
-    
-    .dashboard-content {
-        min-height: calc(100vh - 75px);
-    }
-    
-    .nav-pills .nav-link.active {
-        background-color: var(--accent-color);
-    }
-
     .item-image {
         width: 80px;
         height: 80px;
@@ -58,7 +44,7 @@
 </style>
 {% endblock %}
 
-{% block content %}
+{% block admin_content %}
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-lg-3 col-xl-2">
@@ -389,7 +375,6 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
 <!-- Bulk Add Menu Items Modal -->
 <div class="modal fade" id="bulkAddMenuItemModal" tabindex="-1" aria-labelledby="bulkAddMenuItemModalLabel" aria-hidden="true">
@@ -460,7 +445,9 @@
     </div>
 </div>
 
-{% block extra_js %}
+{% endblock %}
+
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Edit menu item button click
