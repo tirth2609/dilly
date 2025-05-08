@@ -1,30 +1,9 @@
 {% extends "layout.html" %}
 
-{% block title %}Admin Dashboard - Dilly's Veg Kitchen{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block extra_css %}
 <style>
-    .stats-card {
-        background-color: #fff;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        transition: transform 0.3s ease;
-    }
-    
-    .stats-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .stats-icon {
-        font-size: 2rem;
-        color: var(--accent-color);
-    }
-    
-    .stats-value {
-        font-size: 2rem;
-        font-weight: 700;
-    }
-    
     .sidebar {
         height: calc(100vh - 75px);
         position: sticky;
@@ -39,12 +18,88 @@
         background-color: var(--accent-color);
     }
     
-    .table-action-btn {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        line-height: 32px;
-        text-align: center;
+    .stat-card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 1.5rem;
+    }
+    
+    .bg-soft-primary {
+        background-color: rgba(13, 110, 253, 0.2);
+        color: #0d6efd;
+    }
+    
+    .bg-soft-success {
+        background-color: rgba(25, 135, 84, 0.2);
+        color: #198754;
+    }
+    
+    .bg-soft-warning {
+        background-color: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+    }
+    
+    .bg-soft-info {
+        background-color: rgba(13, 202, 240, 0.2);
+        color: #0dcaf0;
+    }
+    
+    .table th {
+        font-weight: 600;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 24px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -24px;
+        top: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid var(--primary-color);
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-date {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
     }
 </style>
 {% endblock %}
@@ -86,176 +141,240 @@
         <div class="col-lg-9 col-xl-10">
             <div class="dashboard-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="mb-0">Admin Dashboard</h3>
-                    <span class="text-muted">Welcome, {{ current_user.username }}</span>
+                    <h3 class="mb-0">Dashboard</h3>
+                    <div>
+                        <span class="text-muted me-2">{{ datetime.now().strftime('%B %d, %Y') }}</span>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-sync-alt me-1"></i> Refresh
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Statistics Cards -->
                 <div class="row mb-4">
-                    <div class="col-sm-6 col-md-3 mb-3">
-                        <div class="stats-card p-3 text-center">
-                            <div class="stats-icon mb-2">
-                                <i class="fas fa-users"></i>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card border-0 shadow h-100 stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="stat-icon bg-soft-primary">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="text-muted mb-0">Total Orders</h6>
+                                        <h3 class="mb-0">{{ stats.orders_count }}</h3>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="fas fa-arrow-up me-1"></i>{{ stats.orders_growth }}%
+                                    </span>
+                                    <small class="text-muted">Since last month</small>
+                                </div>
                             </div>
-                            <div class="stats-value">{{ user_count }}</div>
-                            <div class="stats-label">Total Users</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-md-3 mb-3">
-                        <div class="stats-card p-3 text-center">
-                            <div class="stats-icon mb-2">
-                                <i class="fas fa-calendar-check"></i>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card border-0 shadow h-100 stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="stat-icon bg-soft-success">
+                                            <i class="fas fa-rupee-sign"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="text-muted mb-0">Total Revenue</h6>
+                                        <h3 class="mb-0">₹{{ stats.revenue }}</h3>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="fas fa-arrow-up me-1"></i>{{ stats.revenue_growth }}%
+                                    </span>
+                                    <small class="text-muted">Since last month</small>
+                                </div>
                             </div>
-                            <div class="stats-value">{{ reservation_count }}</div>
-                            <div class="stats-label">Reservations</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-md-3 mb-3">
-                        <div class="stats-card p-3 text-center">
-                            <div class="stats-icon mb-2">
-                                <i class="fas fa-shopping-cart"></i>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card border-0 shadow h-100 stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="stat-icon bg-soft-warning">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="text-muted mb-0">Total Users</h6>
+                                        <h3 class="mb-0">{{ stats.users_count }}</h3>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="fas fa-arrow-up me-1"></i>{{ stats.users_growth }}%
+                                    </span>
+                                    <small class="text-muted">Since last month</small>
+                                </div>
                             </div>
-                            <div class="stats-value">{{ order_count }}</div>
-                            <div class="stats-label">Orders</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-md-3 mb-3">
-                        <div class="stats-card p-3 text-center">
-                            <div class="stats-icon mb-2">
-                                <i class="fas fa-inr"></i>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card border-0 shadow h-100 stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="stat-icon bg-soft-info">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="text-muted mb-0">Reservations</h6>
+                                        <h3 class="mb-0">{{ stats.reservations_count }}</h3>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="fas fa-arrow-up me-1"></i>{{ stats.reservations_growth }}%
+                                    </span>
+                                    <small class="text-muted">Since last month</small>
+                                </div>
                             </div>
-                            <div class="stats-value">₹{{ revenue }}</div>
-                            <div class="stats-label">Revenue</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Recent Orders -->
-                <div class="card border-0 shadow mb-4">
-                    <div class="card-header bg-white py-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Recent Orders</h5>
-                            <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <div class="col-lg-8 mb-4 mb-lg-0">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-header bg-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Revenue Overview</h5>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            This Month
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="revenueFilterDropdown">
+                                            <li><a class="dropdown-item" href="#">This Week</a></li>
+                                            <li><a class="dropdown-item" href="#">This Month</a></li>
+                                            <li><a class="dropdown-item" href="#">This Year</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="revenueChart" height="300"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Order ID</th>
-                                        <th>Customer</th>
-                                        <th>Type</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Date/Time</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for order in recent_orders %}
-                                    <tr>
-                                        <td>#{{ order.id }}</td>
-                                        <td>{{ order.name }}</td>
-                                        <td><span class="badge bg-secondary">{{ order.order_type }}</span></td>
-                                        <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
-                                        <td>
-                                            {% if order.status == 'pending' %}
-                                                <span class="badge bg-warning">{{ order.status }}</span>
-                                            {% elif order.status == 'preparing' %}
-                                                <span class="badge bg-primary">{{ order.status }}</span>
-                                            {% elif order.status == 'ready' %}
-                                                <span class="badge bg-info">{{ order.status }}</span>
-                                            {% elif order.status == 'completed' %}
-                                                <span class="badge bg-success">{{ order.status }}</span>
-                                            {% elif order.status == 'cancelled' %}
-                                                <span class="badge bg-danger">{{ order.status }}</span>
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-header bg-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Order Distribution</h5>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="orderDistributionChart" height="240"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders and Upcoming Reservations -->
+                <div class="row">
+                    <div class="col-lg-8 mb-4 mb-lg-0">
+                        <div class="card border-0 shadow">
+                            <div class="card-header bg-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Recent Orders</h5>
+                                    <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Customer</th>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for order in recent_orders %}
+                                            <tr>
+                                                <td>#{{ order.id }}</td>
+                                                <td>{{ order.name }}</td>
+                                                <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                                                <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
+                                                <td>
+                                                    {% if order.status == 'pending' %}
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    {% elif order.status == 'preparing' %}
+                                                        <span class="badge bg-primary">Preparing</span>
+                                                    {% elif order.status == 'ready' %}
+                                                        <span class="badge bg-info">Ready</span>
+                                                    {% elif order.status == 'completed' %}
+                                                        <span class="badge bg-success">Completed</span>
+                                                    {% elif order.status == 'cancelled' %}
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                                                </td>
+                                            </tr>
                                             {% else %}
-                                                <span class="badge bg-secondary">{{ order.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ order.created_at.strftime('%d %b, %H:%M') }}</td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-sm btn-primary table-action-btn">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ url_for('admin_order_edit', order_id=order.id) }}" class="btn btn-sm btn-info table-action-btn">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="7" class="text-center py-3">No recent orders found.</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-3">No recent orders</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Recent Reservations -->
-                <div class="card border-0 shadow mb-4">
-                    <div class="card-header bg-white py-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Upcoming Reservations</h5>
-                            <a href="{{ url_for('admin_reservations') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Customer</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Guests</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-header bg-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Today's Reservations</h5>
+                                    <a href="{{ url_for('admin_reservations') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                {% if upcoming_reservations %}
+                                <div class="timeline">
                                     {% for reservation in upcoming_reservations %}
-                                    <tr>
-                                        <td>#{{ reservation.id }}</td>
-                                        <td>{{ reservation.name }}</td>
-                                        <td>{{ reservation.date.strftime('%d %b %Y') }}</td>
-                                        <td>{{ reservation.time.strftime('%I:%M %p') }}</td>
-                                        <td>{{ reservation.guests }}</td>
-                                        <td>
-                                            {% if reservation.status == 'confirmed' %}
-                                                <span class="badge bg-success">{{ reservation.status }}</span>
-                                            {% elif reservation.status == 'cancelled' %}
-                                                <span class="badge bg-danger">{{ reservation.status }}</span>
-                                            {% elif reservation.status == 'completed' %}
-                                                <span class="badge bg-info">{{ reservation.status }}</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ reservation.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <a href="{{ url_for('admin_reservation_detail', reservation_id=reservation.id) }}" class="btn btn-sm btn-primary table-action-btn">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ url_for('admin_reservation_edit', reservation_id=reservation.id) }}" class="btn btn-sm btn-info table-action-btn">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
+                                    <div class="timeline-item">
+                                        <div class="timeline-date">{{ reservation.time.strftime('%I:%M %p') }}</div>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="mb-0">{{ reservation.name }}</h6>
+                                                <div class="text-muted small">{{ reservation.guests }} guests</div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="7" class="text-center py-3">No upcoming reservations found.</td>
-                                    </tr>
+                                            <span class="badge {% if reservation.status == 'confirmed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ reservation.status }}
+                                            </span>
+                                        </div>
+                                    </div>
                                     {% endfor %}
-                                </tbody>
-                            </table>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar text-muted mb-2" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mb-0">No reservations for today.</p>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -263,4 +382,90 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Revenue chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 30000, 29000, 33000],
+                    fill: {
+                        target: 'origin',
+                        above: 'rgba(13, 110, 253, 0.1)',
+                    },
+                    borderColor: '#0d6efd',
+                    tension: 0.3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#0d6efd',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Order distribution chart
+        const orderDistCtx = document.getElementById('orderDistributionChart').getContext('2d');
+        new Chart(orderDistCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Dine-in', 'Takeaway', 'Delivery'],
+                datasets: [{
+                    data: [45, 30, 25],
+                    backgroundColor: ['#0d6efd', '#198754', '#6c757d'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

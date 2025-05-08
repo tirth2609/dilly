@@ -55,84 +55,601 @@ def init_routes(app):
                               recent_orders=recent_orders,
                               upcoming_reservations=upcoming_reservations)
     
-    # Placeholder routes for admin sections - to be implemented
+    # Admin Menu Items
     @app.route('/admin/menu-items')
     @login_required
     @admin_required
     def admin_menu_items():
-        flash('Menu management functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        categories = Category.query.order_by(Category.display_order).all()
+        menu_items = MenuItem.query.all()
+        return render_template('admin/menu_items.html', categories=categories, menu_items=menu_items)
     
+    @app.route('/admin/menu-items/add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_add_menu_item():
+        name = request.form.get('name')
+        description = request.form.get('description')
+        price = request.form.get('price')
+        category_id = request.form.get('category_id')
+        is_vegan = 'is_vegan' in request.form
+        is_gluten_free = 'is_gluten_free' in request.form
+        is_jain = 'is_jain' in request.form
+        is_available = 'is_available' in request.form
+        
+        # Handle image upload
+        image_url = request.form.get('image_url', '')
+        if 'image' in request.files and request.files['image'].filename:
+            image_url = save_image(request.files['image'])
+            
+        # Create new menu item
+        menu_item = MenuItem(
+            name=name,
+            description=description,
+            price=float(price),
+            category_id=category_id,
+            image_url=image_url,
+            is_vegan=is_vegan,
+            is_gluten_free=is_gluten_free,
+            is_jain=is_jain,
+            is_available=is_available
+        )
+        
+        db.session.add(menu_item)
+        db.session.commit()
+        
+        flash(f'Menu item "{name}" has been added successfully.', 'success')
+        return redirect(url_for('admin_menu_items'))
+    
+    @app.route('/admin/menu-items/edit', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_edit_menu_item():
+        item_id = request.form.get('id')
+        menu_item = MenuItem.query.get_or_404(item_id)
+        
+        menu_item.name = request.form.get('name')
+        menu_item.description = request.form.get('description')
+        menu_item.price = float(request.form.get('price'))
+        menu_item.category_id = request.form.get('category_id')
+        menu_item.is_vegan = 'is_vegan' in request.form
+        menu_item.is_gluten_free = 'is_gluten_free' in request.form
+        menu_item.is_jain = 'is_jain' in request.form
+        menu_item.is_available = 'is_available' in request.form
+        
+        # Handle image upload
+        if 'image' in request.files and request.files['image'].filename:
+            menu_item.image_url = save_image(request.files['image'])
+            
+        db.session.commit()
+        
+        flash(f'Menu item "{menu_item.name}" has been updated successfully.', 'success')
+        return redirect(url_for('admin_menu_items'))
+    
+    @app.route('/admin/menu-items/delete', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_delete_menu_item():
+        item_id = request.form.get('id')
+        menu_item = MenuItem.query.get_or_404(item_id)
+        
+        name = menu_item.name
+        db.session.delete(menu_item)
+        db.session.commit()
+        
+        flash(f'Menu item "{name}" has been deleted successfully.', 'success')
+        return redirect(url_for('admin_menu_items'))
+    
+    # Admin Categories
     @app.route('/admin/categories')
     @login_required
     @admin_required
     def admin_categories():
-        flash('Category management functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        categories = Category.query.order_by(Category.display_order).all()
+        return render_template('admin/categories.html', categories=categories)
     
+    @app.route('/admin/categories/add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_add_category():
+        name = request.form.get('name')
+        description = request.form.get('description', '')
+        display_order = request.form.get('display_order', 0)
+        
+        category = Category(
+            name=name,
+            description=description,
+            display_order=int(display_order)
+        )
+        
+        db.session.add(category)
+        db.session.commit()
+        
+        flash(f'Category "{name}" has been added successfully.', 'success')
+        return redirect(url_for('admin_categories'))
+    
+    @app.route('/admin/categories/edit', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_edit_category():
+        category_id = request.form.get('id')
+        category = Category.query.get_or_404(category_id)
+        
+        category.name = request.form.get('name')
+        category.description = request.form.get('description', '')
+        category.display_order = int(request.form.get('display_order', 0))
+        
+        db.session.commit()
+        
+        flash(f'Category "{category.name}" has been updated successfully.', 'success')
+        return redirect(url_for('admin_categories'))
+    
+    @app.route('/admin/categories/delete', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_delete_category():
+        category_id = request.form.get('id')
+        category = Category.query.get_or_404(category_id)
+        
+        # Check if category has menu items
+        if category.menu_items:
+            flash(f'Cannot delete category "{category.name}" because it contains menu items.', 'danger')
+            return redirect(url_for('admin_categories'))
+        
+        name = category.name
+        db.session.delete(category)
+        db.session.commit()
+        
+        flash(f'Category "{name}" has been deleted successfully.', 'success')
+        return redirect(url_for('admin_categories'))
+    
+    # Admin Reservations
     @app.route('/admin/reservations')
     @login_required
     @admin_required
     def admin_reservations():
-        flash('Reservation management functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        reservations = Reservation.query.order_by(Reservation.date.desc(), Reservation.time.desc()).all()
+        return render_template('admin/reservations.html', reservations=reservations)
     
+    @app.route('/admin/reservations/add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_add_reservation():
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        time = datetime.strptime(request.form.get('time'), '%H:%M').time()
+        guests = int(request.form.get('guests'))
+        special_requests = request.form.get('special_requests', '')
+        status = request.form.get('status', 'confirmed')
+        
+        reservation = Reservation(
+            name=name,
+            email=email,
+            phone=phone,
+            date=date,
+            time=time,
+            guests=guests,
+            special_requests=special_requests,
+            status=status
+        )
+        
+        db.session.add(reservation)
+        db.session.commit()
+        
+        flash(f'Reservation for {name} on {date.strftime("%d %b %Y")} has been added successfully.', 'success')
+        return redirect(url_for('admin_reservations'))
+    
+    @app.route('/admin/reservations/edit', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_edit_reservation():
+        reservation_id = request.form.get('id')
+        reservation = Reservation.query.get_or_404(reservation_id)
+        
+        reservation.name = request.form.get('name')
+        reservation.email = request.form.get('email')
+        reservation.phone = request.form.get('phone')
+        reservation.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        reservation.time = datetime.strptime(request.form.get('time'), '%H:%M').time()
+        reservation.guests = int(request.form.get('guests'))
+        reservation.special_requests = request.form.get('special_requests', '')
+        reservation.status = request.form.get('status')
+        
+        db.session.commit()
+        
+        flash(f'Reservation for {reservation.name} on {reservation.date.strftime("%d %b %Y")} has been updated successfully.', 'success')
+        return redirect(url_for('admin_reservations'))
+    
+    @app.route('/admin/reservations/cancel', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_cancel_reservation():
+        reservation_id = request.form.get('id')
+        reservation = Reservation.query.get_or_404(reservation_id)
+        
+        reservation.status = 'cancelled'
+        db.session.commit()
+        
+        flash(f'Reservation for {reservation.name} has been cancelled.', 'success')
+        return redirect(url_for('admin_reservations'))
+    
+    # Admin Banquet Bookings
     @app.route('/admin/banquets')
     @login_required
     @admin_required
     def admin_banquets():
-        flash('Banquet booking management functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        banquet_bookings = BanquetBooking.query.order_by(BanquetBooking.date.desc()).all()
+        return render_template('admin/banquets.html', banquet_bookings=banquet_bookings)
     
+    @app.route('/admin/banquets/add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_add_banquet():
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        event_type = request.form.get('event_type')
+        date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        time = datetime.strptime(request.form.get('time'), '%H:%M').time()
+        guests = int(request.form.get('guests'))
+        requirements = request.form.get('requirements', '')
+        status = request.form.get('status', 'pending')
+        
+        booking = BanquetBooking(
+            name=name,
+            email=email,
+            phone=phone,
+            event_type=event_type,
+            date=date,
+            time=time,
+            guests=guests,
+            requirements=requirements,
+            status=status
+        )
+        
+        db.session.add(booking)
+        db.session.commit()
+        
+        flash(f'Banquet booking for {name} on {date.strftime("%d %b %Y")} has been added successfully.', 'success')
+        return redirect(url_for('admin_banquets'))
+    
+    @app.route('/admin/banquets/edit', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_edit_banquet():
+        booking_id = request.form.get('id')
+        booking = BanquetBooking.query.get_or_404(booking_id)
+        
+        booking.name = request.form.get('name')
+        booking.email = request.form.get('email')
+        booking.phone = request.form.get('phone')
+        booking.event_type = request.form.get('event_type')
+        booking.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        booking.time = datetime.strptime(request.form.get('time'), '%H:%M').time()
+        booking.guests = int(request.form.get('guests'))
+        booking.requirements = request.form.get('requirements', '')
+        booking.status = request.form.get('status')
+        
+        db.session.commit()
+        
+        flash(f'Banquet booking for {booking.name} on {booking.date.strftime("%d %b %Y")} has been updated successfully.', 'success')
+        return redirect(url_for('admin_banquets'))
+    
+    @app.route('/admin/banquets/confirm', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_confirm_banquet():
+        booking_id = request.form.get('id')
+        booking = BanquetBooking.query.get_or_404(booking_id)
+        
+        booking.status = 'confirmed'
+        db.session.commit()
+        
+        flash(f'Banquet booking for {booking.name} has been confirmed.', 'success')
+        return redirect(url_for('admin_banquets'))
+    
+    @app.route('/admin/banquets/cancel', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_cancel_banquet():
+        booking_id = request.form.get('id')
+        booking = BanquetBooking.query.get_or_404(booking_id)
+        
+        booking.status = 'cancelled'
+        db.session.commit()
+        
+        flash(f'Banquet booking for {booking.name} has been cancelled.', 'success')
+        return redirect(url_for('admin_banquets'))
+    
+    # Admin Orders
     @app.route('/admin/orders')
     @login_required
     @admin_required
     def admin_orders():
-        flash('Order management functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        orders = Order.query.order_by(Order.created_at.desc()).all()
+        categories = Category.query.order_by(Category.display_order).all()
+        
+        # Calculate today's revenue
+        today = datetime.now().date()
+        todays_orders = Order.query.filter(
+            db.func.date(Order.created_at) == today,
+            Order.status != 'cancelled'
+        ).all()
+        todays_revenue = sum(order.total_amount for order in todays_orders)
+        
+        # Calculate average order value
+        completed_orders = Order.query.filter(Order.status != 'cancelled').all()
+        total_orders = len(completed_orders)
+        total_revenue = sum(order.total_amount for order in completed_orders)
+        avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+        
+        return render_template('admin/orders.html', 
+                              orders=orders,
+                              categories=categories,
+                              todays_revenue=f"{todays_revenue:.2f}",
+                              avg_order_value=f"{avg_order_value:.2f}")
     
+    @app.route('/admin/orders/add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_add_order():
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        order_type = request.form.get('order_type')
+        special_instructions = request.form.get('special_instructions', '')
+        payment_method = request.form.get('payment_method')
+        payment_status = 'completed' if 'payment_completed' in request.form else 'pending'
+        
+        # Get order items from JSON
+        order_items_json = request.form.get('order_items_json', '[]')
+        order_items_data = json.loads(order_items_json)
+        
+        if not order_items_data:
+            flash('Cannot create an order without items.', 'danger')
+            return redirect(url_for('admin_orders'))
+        
+        # Calculate total amount
+        total_amount = sum(item['price'] * item['quantity'] for item in order_items_data)
+        
+        # Create order
+        order = Order(
+            name=name,
+            email=email,
+            phone=phone,
+            order_type=order_type,
+            special_instructions=special_instructions,
+            total_amount=total_amount,
+            payment_method=payment_method,
+            payment_status=payment_status,
+            status='pending'
+        )
+        
+        # Add table number for dine-in orders
+        if order_type == 'dine-in':
+            table_number = request.form.get('table_number')
+            if table_number:
+                order.table_number = int(table_number)
+                
+        # Add address for delivery orders
+        if order_type == 'delivery':
+            address = request.form.get('address')
+            if address:
+                # Create a temporary address for this order
+                temp_address = Address(
+                    user_id=current_user.id if current_user.is_authenticated else None,
+                    address_line1=address,
+                    city="Delivery City",  # Default values
+                    state="Delivery State",
+                    postal_code="000000"
+                )
+                db.session.add(temp_address)
+                db.session.flush()
+                order.address_id = temp_address.id
+        
+        db.session.add(order)
+        db.session.flush()  # To get the order ID
+        
+        # Add order items
+        for item_data in order_items_data:
+            menu_item = MenuItem.query.get(item_data['id'])
+            if menu_item:
+                order_item = OrderItem(
+                    order_id=order.id,
+                    menu_item_id=menu_item.id,
+                    quantity=item_data['quantity'],
+                    price=menu_item.price,
+                    notes=item_data.get('notes', '')
+                )
+                db.session.add(order_item)
+        
+        db.session.commit()
+        
+        flash(f'Order for {name} has been created successfully.', 'success')
+        return redirect(url_for('admin_orders'))
+    
+    @app.route('/admin/orders/update-status', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_update_order_status():
+        order_id = request.form.get('order_id')
+        new_status = request.form.get('status')
+        payment_status = request.form.get('payment_status')
+        
+        order = Order.query.get_or_404(order_id)
+        order.status = new_status
+        order.payment_status = payment_status
+        
+        db.session.commit()
+        
+        flash(f'Order #{order_id} status has been updated to {new_status}.', 'success')
+        return redirect(url_for('admin_orders'))
+    
+    @app.route('/admin/orders/cancel', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_cancel_order():
+        order_id = request.form.get('order_id')
+        reason = request.form.get('reason', 'Cancelled by admin')
+        
+        order = Order.query.get_or_404(order_id)
+        order.status = 'cancelled'
+        order.special_instructions += f"\n\nCancellation reason: {reason}"
+        
+        db.session.commit()
+        
+        flash(f'Order #{order_id} has been cancelled.', 'success')
+        return redirect(url_for('admin_orders'))
+    
+    # Admin Users
     @app.route('/admin/users')
     @login_required
     @admin_required
     def admin_users():
-        flash('User management functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        users = User.query.all()
+        
+        # Calculate stats (this would be more sophisticated in a real app)
+        total_users_count = len(users)
+        # Assume users from last 30 days are "new"
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        new_users_count = User.query.filter(User.created_at >= thirty_days_ago).count()
+        
+        # Sample recent activities
+        recent_activities = [
+            {'description': 'New user registered', 'date': datetime.now() - timedelta(hours=2)},
+            {'description': 'User updated profile', 'date': datetime.now() - timedelta(hours=5)},
+            {'description': 'Password reset requested', 'date': datetime.now() - timedelta(hours=8)}
+        ]
+        
+        return render_template('admin/users.html', 
+                              users=users,
+                              total_users_count=total_users_count,
+                              new_users_count=new_users_count,
+                              recent_activities=recent_activities)
     
+    @app.route('/admin/users/add', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_add_user():
+        username = request.form.get('username')
+        email = request.form.get('email')
+        phone = request.form.get('phone', '')
+        password = request.form.get('password')
+        is_admin = 'is_admin' in request.form
+        
+        # Check if username or email already exists
+        if User.query.filter_by(username=username).first():
+            flash(f'Username "{username}" is already taken.', 'danger')
+            return redirect(url_for('admin_users'))
+            
+        if User.query.filter_by(email=email).first():
+            flash(f'Email "{email}" is already registered.', 'danger')
+            return redirect(url_for('admin_users'))
+        
+        # Create new user
+        user = User(
+            username=username,
+            email=email,
+            phone=phone,
+            is_admin=is_admin
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash(f'User "{username}" has been created successfully.', 'success')
+        return redirect(url_for('admin_users'))
+    
+    @app.route('/admin/users/edit', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_edit_user():
+        user_id = request.form.get('id')
+        user = User.query.get_or_404(user_id)
+        
+        username = request.form.get('username')
+        email = request.form.get('email')
+        phone = request.form.get('phone', '')
+        password = request.form.get('password')
+        is_admin = 'is_admin' in request.form
+        
+        # Check if username or email already exists (excluding current user)
+        username_exists = User.query.filter(User.username == username, User.id != user_id).first()
+        email_exists = User.query.filter(User.email == email, User.id != user_id).first()
+        
+        if username_exists:
+            flash(f'Username "{username}" is already taken.', 'danger')
+            return redirect(url_for('admin_users'))
+            
+        if email_exists:
+            flash(f'Email "{email}" is already registered.', 'danger')
+            return redirect(url_for('admin_users'))
+        
+        # Update user details
+        user.username = username
+        user.email = email
+        user.phone = phone
+        user.is_admin = is_admin
+        
+        # Update password if provided
+        if password:
+            user.set_password(password)
+        
+        db.session.commit()
+        
+        flash(f'User "{username}" has been updated successfully.', 'success')
+        return redirect(url_for('admin_users'))
+    
+    @app.route('/admin/users/delete', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_delete_user():
+        user_id = request.form.get('id')
+        user = User.query.get_or_404(user_id)
+        
+        # Prevent deleting the current user
+        if user.id == current_user.id:
+            flash('You cannot delete your own account.', 'danger')
+            return redirect(url_for('admin_users'))
+        
+        username = user.username
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash(f'User "{username}" has been deleted successfully.', 'success')
+        return redirect(url_for('admin_users'))
+    
+    # Admin Settings
     @app.route('/admin/settings')
     @login_required
     @admin_required
     def admin_settings():
-        flash('Settings functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+        return render_template('admin/settings.html')
     
-    # Placeholder routes for detail and edit pages
-    @app.route('/admin/order/<int:order_id>')
+    # Placeholder settings update routes
+    @app.route('/admin/update-restaurant-settings', methods=['POST'])
     @login_required
     @admin_required
-    def admin_order_detail(order_id):
-        flash('Order detail functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+    def admin_update_restaurant_settings():
+        flash('Restaurant settings updated successfully.', 'success')
+        return redirect(url_for('admin_settings'))
     
-    @app.route('/admin/order/edit/<int:order_id>')
+    @app.route('/admin/update-website-settings', methods=['POST'])
     @login_required
     @admin_required
-    def admin_order_edit(order_id):
-        flash('Order edit functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+    def admin_update_website_settings():
+        flash('Website settings updated successfully.', 'success')
+        return redirect(url_for('admin_settings'))
     
-    @app.route('/admin/reservation/<int:reservation_id>')
+    @app.route('/admin/update-notification-settings', methods=['POST'])
     @login_required
     @admin_required
-    def admin_reservation_detail(reservation_id):
-        flash('Reservation detail functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
-    
-    @app.route('/admin/reservation/edit/<int:reservation_id>')
-    @login_required
-    @admin_required
-    def admin_reservation_edit(reservation_id):
-        flash('Reservation edit functionality will be implemented soon.', 'info')
-        return redirect(url_for('admin_dashboard'))
+    def admin_update_notification_settings():
+        flash('Notification settings updated successfully.', 'success')
+        return redirect(url_for('admin_settings'))
     
     @app.route('/')
     @app.route('/home')

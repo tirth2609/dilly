@@ -1,0 +1,461 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Menu Items - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        height: calc(100vh - 75px);
+        position: sticky;
+        top: 75px;
+    }
+    
+    .dashboard-content {
+        min-height: calc(100vh - 75px);
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: var(--accent-color);
+    }
+
+    .item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+    }
+
+    .table-action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 32px;
+        text-align: center;
+    }
+
+    .dietary-tag {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50px;
+        margin-right: 0.25rem;
+        display: inline-block;
+    }
+
+    .tag-vegan {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .tag-gluten-free {
+        background-color: #9c27b0;
+        color: white;
+    }
+
+    .tag-jain {
+        background-color: #e91e63;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-3 col-xl-2">
+            <div class="sidebar bg-light p-3 rounded">
+                <h5 class="mb-3">Admin Menu</h5>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('admin_menu_items') }}">
+                        <i class="fas fa-utensils me-2"></i> Manage Menu
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_categories') }}">
+                        <i class="fas fa-tags me-2"></i> Categories
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_reservations') }}">
+                        <i class="fas fa-calendar-check me-2"></i> Reservations
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_banquets') }}">
+                        <i class="fas fa-glass-cheers me-2"></i> Banquet Bookings
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_orders') }}">
+                        <i class="fas fa-shopping-cart me-2"></i> Orders
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_users') }}">
+                        <i class="fas fa-users me-2"></i> Users
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_settings') }}">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9 col-xl-10">
+            <div class="dashboard-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Manage Menu Items</h3>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addMenuItemModal">
+                        <i class="fas fa-plus me-2"></i> Add New Item
+                    </button>
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="categoryFilter" class="form-label">Filter by Category</label>
+                                    <select id="categoryFilter" class="form-select">
+                                        <option value="all">All Categories</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="searchMenu" class="form-label">Search</label>
+                                    <input type="text" id="searchMenu" class="form-control" placeholder="Search by name or description...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu Items Table -->
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Dietary</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in menu_items %}
+                                    <tr>
+                                        <td>
+                                            <img src="{{ item.image_url or url_for('static', filename='images/placeholder-food.jpg') }}" alt="{{ item.name }}" class="item-image">
+                                        </td>
+                                        <td>
+                                            <strong>{{ item.name }}</strong>
+                                            <div class="small text-muted">{{ item.description|truncate(60) }}</div>
+                                        </td>
+                                        <td>{{ item.category.name }}</td>
+                                        <td>₹{{ "%.2f"|format(item.price) }}</td>
+                                        <td>
+                                            {% if item.is_vegan %}
+                                            <span class="dietary-tag tag-vegan">Vegan</span>
+                                            {% endif %}
+                                            {% if item.is_gluten_free %}
+                                            <span class="dietary-tag tag-gluten-free">GF</span>
+                                            {% endif %}
+                                            {% if item.is_jain %}
+                                            <span class="dietary-tag tag-jain">Jain</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.is_available %}
+                                            <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Unavailable</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-info table-action-btn edit-item-btn" 
+                                                        data-id="{{ item.id }}" 
+                                                        data-name="{{ item.name }}"
+                                                        data-description="{{ item.description }}"
+                                                        data-price="{{ item.price }}"
+                                                        data-category="{{ item.category_id }}"
+                                                        data-image="{{ item.image_url }}"
+                                                        data-vegan="{{ item.is_vegan }}"
+                                                        data-gluten-free="{{ item.is_gluten_free }}"
+                                                        data-jain="{{ item.is_jain }}"
+                                                        data-available="{{ item.is_available }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editMenuItemModal">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger table-action-btn delete-item-btn"
+                                                        data-id="{{ item.id }}"
+                                                        data-name="{{ item.name }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteMenuItemModal">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">No menu items found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Menu Item Modal -->
+<div class="modal fade" id="addMenuItemModal" tabindex="-1" aria-labelledby="addMenuItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_add_menu_item') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMenuItemModalLabel">Add New Menu Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Item Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Price (₹)</label>
+                                <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Category</label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">Select a category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Image</label>
+                                <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label d-block">Dietary Options</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="is_vegan" name="is_vegan" value="true">
+                                    <label class="form-check-label" for="is_vegan">Vegan</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="is_gluten_free" name="is_gluten_free" value="true">
+                                    <label class="form-check-label" for="is_gluten_free">Gluten Free</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="is_jain" name="is_jain" value="true">
+                                    <label class="form-check-label" for="is_jain">Jain</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_available" name="is_available" value="true" checked>
+                                    <label class="form-check-label" for="is_available">Available</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Menu Item Modal -->
+<div class="modal fade" id="editMenuItemModal" tabindex="-1" aria-labelledby="editMenuItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_edit_menu_item') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMenuItemModalLabel">Edit Menu Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Item Name</label>
+                                <input type="text" class="form-control" id="edit_name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_price" class="form-label">Price (₹)</label>
+                                <input type="number" class="form-control" id="edit_price" name="price" step="0.01" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_category_id" class="form-label">Category</label>
+                                <select class="form-select" id="edit_category_id" name="category_id" required>
+                                    <option value="">Select a category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_image" class="form-label">Image</label>
+                                <input type="file" class="form-control" id="edit_image" name="image" accept="image/*">
+                                <small class="form-text text-muted">Leave empty to keep current image</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_description" class="form-label">Description</label>
+                                <textarea class="form-control" id="edit_description" name="description" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label d-block">Dietary Options</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="edit_is_vegan" name="is_vegan" value="true">
+                                    <label class="form-check-label" for="edit_is_vegan">Vegan</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="edit_is_gluten_free" name="is_gluten_free" value="true">
+                                    <label class="form-check-label" for="edit_is_gluten_free">Gluten Free</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="edit_is_jain" name="is_jain" value="true">
+                                    <label class="form-check-label" for="edit_is_jain">Jain</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="edit_is_available" name="is_available" value="true">
+                                    <label class="form-check-label" for="edit_is_available">Available</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Menu Item Modal -->
+<div class="modal fade" id="deleteMenuItemModal" tabindex="-1" aria-labelledby="deleteMenuItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_delete_menu_item') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteMenuItemModalLabel">Delete Menu Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="delete_id" name="id">
+                    <p>Are you sure you want to delete <strong id="delete_name"></strong>? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit menu item button click
+        const editBtns = document.querySelectorAll('.edit-item-btn');
+        editBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('edit_id').value = this.getAttribute('data-id');
+                document.getElementById('edit_name').value = this.getAttribute('data-name');
+                document.getElementById('edit_description').value = this.getAttribute('data-description');
+                document.getElementById('edit_price').value = this.getAttribute('data-price');
+                document.getElementById('edit_category_id').value = this.getAttribute('data-category');
+                
+                // Handle checkboxes
+                document.getElementById('edit_is_vegan').checked = (this.getAttribute('data-vegan') === 'True');
+                document.getElementById('edit_is_gluten_free').checked = (this.getAttribute('data-gluten-free') === 'True');
+                document.getElementById('edit_is_jain').checked = (this.getAttribute('data-jain') === 'True');
+                document.getElementById('edit_is_available').checked = (this.getAttribute('data-available') === 'True');
+            });
+        });
+        
+        // Delete menu item button click
+        const deleteBtns = document.querySelectorAll('.delete-item-btn');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('delete_id').value = this.getAttribute('data-id');
+                document.getElementById('delete_name').textContent = this.getAttribute('data-name');
+            });
+        });
+        
+        // Filter menu items by category
+        const categoryFilter = document.getElementById('categoryFilter');
+        categoryFilter.addEventListener('change', function() {
+            const categoryId = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                if (categoryId === 'all') {
+                    row.style.display = '';
+                } else {
+                    const categoryCell = row.querySelector('td:nth-child(3)');
+                    if (categoryCell && categoryCell.textContent === getCategoryNameById(categoryId)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Search menu items
+        const searchInput = document.getElementById('searchMenu');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const nameCell = row.querySelector('td:nth-child(2)');
+                if (nameCell && nameCell.textContent.toLowerCase().includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Helper function to get category name by ID
+        function getCategoryNameById(id) {
+            // This is a simplified version, you'd normally have this data from your backend
+            const categorySelect = document.getElementById('category_id');
+            const option = categorySelect.querySelector(`option[value="${id}"]`);
+            return option ? option.textContent : '';
+        }
+    });
+</script>
+{% endblock %}

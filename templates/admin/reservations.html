@@ -1,0 +1,698 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Reservations - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        height: calc(100vh - 75px);
+        position: sticky;
+        top: 75px;
+    }
+    
+    .dashboard-content {
+        min-height: calc(100vh - 75px);
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: var(--accent-color);
+    }
+
+    .table-action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 32px;
+        text-align: center;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50px;
+    }
+    
+    .date-selector {
+        max-width: 200px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-3 col-xl-2">
+            <div class="sidebar bg-light p-3 rounded">
+                <h5 class="mb-3">Admin Menu</h5>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_menu_items') }}">
+                        <i class="fas fa-utensils me-2"></i> Manage Menu
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_categories') }}">
+                        <i class="fas fa-tags me-2"></i> Categories
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('admin_reservations') }}">
+                        <i class="fas fa-calendar-check me-2"></i> Reservations
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_banquets') }}">
+                        <i class="fas fa-glass-cheers me-2"></i> Banquet Bookings
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_orders') }}">
+                        <i class="fas fa-shopping-cart me-2"></i> Orders
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_users') }}">
+                        <i class="fas fa-users me-2"></i> Users
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_settings') }}">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9 col-xl-10">
+            <div class="dashboard-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Manage Reservations</h3>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addReservationModal">
+                        <i class="fas fa-plus me-2"></i> Add New Reservation
+                    </button>
+                </div>
+                
+                <!-- Filter Controls -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <label for="dateFilter" class="form-label">Filter by Date</label>
+                                <input type="date" id="dateFilter" class="form-control date-selector">
+                            </div>
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select id="statusFilter" class="form-select">
+                                    <option value="all">All Statuses</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <label for="searchReservation" class="form-label">Search</label>
+                                <input type="text" id="searchReservation" class="form-control" placeholder="Name, Email, Phone...">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="clearFilters" class="btn btn-secondary w-100">
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reservations Table -->
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Guests</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in reservations %}
+                                    <tr data-status="{{ reservation.status }}">
+                                        <td>#{{ reservation.id }}</td>
+                                        <td>
+                                            <div>{{ reservation.name }}</div>
+                                            <div class="small text-muted">{{ reservation.email }}</div>
+                                            <div class="small text-muted">{{ reservation.phone }}</div>
+                                        </td>
+                                        <td>{{ reservation.date.strftime('%d %b %Y') }}</td>
+                                        <td>{{ reservation.time.strftime('%I:%M %p') }}</td>
+                                        <td>{{ reservation.guests }}</td>
+                                        <td>
+                                            {% if reservation.status == 'confirmed' %}
+                                                <span class="badge bg-success">{{ reservation.status }}</span>
+                                            {% elif reservation.status == 'cancelled' %}
+                                                <span class="badge bg-danger">{{ reservation.status }}</span>
+                                            {% elif reservation.status == 'completed' %}
+                                                <span class="badge bg-info">{{ reservation.status }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ reservation.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-primary table-action-btn view-reservation-btn" 
+                                                        data-id="{{ reservation.id }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#viewReservationModal">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-info table-action-btn edit-reservation-btn" 
+                                                        data-id="{{ reservation.id }}" 
+                                                        data-name="{{ reservation.name }}"
+                                                        data-email="{{ reservation.email }}"
+                                                        data-phone="{{ reservation.phone }}"
+                                                        data-date="{{ reservation.date.strftime('%Y-%m-%d') }}"
+                                                        data-time="{{ reservation.time.strftime('%H:%M') }}"
+                                                        data-guests="{{ reservation.guests }}"
+                                                        data-special-requests="{{ reservation.special_requests }}"
+                                                        data-status="{{ reservation.status }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editReservationModal">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger table-action-btn cancel-reservation-btn"
+                                                        data-id="{{ reservation.id }}"
+                                                        data-name="{{ reservation.name }}"
+                                                        data-date="{{ reservation.date.strftime('%d %b %Y') }}"
+                                                        data-time="{{ reservation.time.strftime('%I:%M %p') }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#cancelReservationModal">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">No reservations found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reservation Statistics -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow">
+                            <div class="card-body">
+                                <h5 class="card-title">Reservations by Day</h5>
+                                <canvas id="reservationChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow">
+                            <div class="card-body">
+                                <h5 class="card-title">Reservations by Status</h5>
+                                <canvas id="statusChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Reservation Modal -->
+<div class="modal fade" id="addReservationModal" tabindex="-1" aria-labelledby="addReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_add_reservation') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addReservationModalLabel">Add New Reservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="time" class="form-label">Time</label>
+                                <select class="form-select" id="time" name="time" required>
+                                    <option value="">Select Time</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="12:30">12:30 PM</option>
+                                    <option value="13:00">1:00 PM</option>
+                                    <option value="13:30">1:30 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="14:30">2:30 PM</option>
+                                    <option value="19:00">7:00 PM</option>
+                                    <option value="19:30">7:30 PM</option>
+                                    <option value="20:00">8:00 PM</option>
+                                    <option value="20:30">8:30 PM</option>
+                                    <option value="21:00">9:00 PM</option>
+                                    <option value="21:30">9:30 PM</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="guests" class="form-label">Number of Guests</label>
+                                <input type="number" class="form-control" id="guests" name="guests" min="1" max="20" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="special_requests" class="form-label">Special Requests</label>
+                        <textarea class="form-control" id="special_requests" name="special_requests" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Reservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Reservation Modal -->
+<div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_edit_reservation') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editReservationModalLabel">Edit Reservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="edit_name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="edit_phone" name="phone" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="edit_date" name="date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_time" class="form-label">Time</label>
+                                <select class="form-select" id="edit_time" name="time" required>
+                                    <option value="">Select Time</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="12:30">12:30 PM</option>
+                                    <option value="13:00">1:00 PM</option>
+                                    <option value="13:30">1:30 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="14:30">2:30 PM</option>
+                                    <option value="19:00">7:00 PM</option>
+                                    <option value="19:30">7:30 PM</option>
+                                    <option value="20:00">8:00 PM</option>
+                                    <option value="20:30">8:30 PM</option>
+                                    <option value="21:00">9:00 PM</option>
+                                    <option value="21:30">9:30 PM</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_guests" class="form-label">Number of Guests</label>
+                                <input type="number" class="form-control" id="edit_guests" name="guests" min="1" max="20" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_special_requests" class="form-label">Special Requests</label>
+                        <textarea class="form-control" id="edit_special_requests" name="special_requests" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_status" class="form-label">Status</label>
+                        <select class="form-select" id="edit_status" name="status" required>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Reservation Modal -->
+<div class="modal fade" id="viewReservationModal" tabindex="-1" aria-labelledby="viewReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewReservationModalLabel">Reservation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reservation-details-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading reservation details...</p>
+                </div>
+                <div id="reservation-details" style="display: none;">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <h5 class="mb-0" id="view_name"></h5>
+                            <span class="ms-2 badge bg-success" id="view_status"></span>
+                        </div>
+                        <p class="text-muted mb-0" id="view_contact"></p>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Date:</strong> <span id="view_date"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Time:</strong> <span id="view_time"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Guests:</strong> <span id="view_guests"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Created:</strong> <span id="view_created"></span>
+                        </div>
+                    </div>
+                    <div id="view_requests_container" class="mb-3">
+                        <strong>Special Requests:</strong>
+                        <p id="view_requests" class="mb-0"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Reservation Modal -->
+<div class="modal fade" id="cancelReservationModal" tabindex="-1" aria-labelledby="cancelReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_cancel_reservation') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelReservationModalLabel">Cancel Reservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="cancel_id" name="id">
+                    <p>Are you sure you want to cancel the reservation for <strong id="cancel_name"></strong> on <strong id="cancel_date"></strong> at <strong id="cancel_time"></strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This action will mark the reservation as 'cancelled'. It can be changed back to 'confirmed' if needed.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Cancel Reservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit reservation button click
+        const editBtns = document.querySelectorAll('.edit-reservation-btn');
+        editBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('edit_id').value = this.getAttribute('data-id');
+                document.getElementById('edit_name').value = this.getAttribute('data-name');
+                document.getElementById('edit_email').value = this.getAttribute('data-email');
+                document.getElementById('edit_phone').value = this.getAttribute('data-phone');
+                document.getElementById('edit_date').value = this.getAttribute('data-date');
+                document.getElementById('edit_time').value = this.getAttribute('data-time');
+                document.getElementById('edit_guests').value = this.getAttribute('data-guests');
+                document.getElementById('edit_special_requests').value = this.getAttribute('data-special-requests') || '';
+                document.getElementById('edit_status').value = this.getAttribute('data-status');
+            });
+        });
+        
+        // View reservation details
+        const viewBtns = document.querySelectorAll('.view-reservation-btn');
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reservationId = this.getAttribute('data-id');
+                
+                // Show loading and hide details
+                document.getElementById('reservation-details-loading').style.display = 'block';
+                document.getElementById('reservation-details').style.display = 'none';
+                
+                // Fetch reservation details from backend
+                // This would be an AJAX call to your backend API in a real app
+                // For now, we'll simulate it with a timeout
+                setTimeout(() => {
+                    // In a real app, this would be data from the API response
+                    // Here we're getting it from the table row
+                    const row = this.closest('tr');
+                    const name = row.querySelector('td:nth-child(2)').innerText.split('\n')[0].trim();
+                    const email = row.querySelector('td:nth-child(2)').innerText.split('\n')[1].trim();
+                    const phone = row.querySelector('td:nth-child(2)').innerText.split('\n')[2].trim();
+                    const date = row.querySelector('td:nth-child(3)').innerText;
+                    const time = row.querySelector('td:nth-child(4)').innerText;
+                    const guests = row.querySelector('td:nth-child(5)').innerText;
+                    const status = row.querySelector('td:nth-child(6) .badge').innerText;
+                    
+                    // Populate modal with data
+                    document.getElementById('view_name').innerText = name;
+                    document.getElementById('view_contact').innerText = `${email} | ${phone}`;
+                    document.getElementById('view_date').innerText = date;
+                    document.getElementById('view_time').innerText = time;
+                    document.getElementById('view_guests').innerText = guests;
+                    document.getElementById('view_created').innerText = '2 days ago'; // In a real app, this would be from the API
+                    
+                    // Set status badge color
+                    const statusBadge = document.getElementById('view_status');
+                    statusBadge.innerText = status;
+                    if (status.toLowerCase() === 'confirmed') {
+                        statusBadge.className = 'ms-2 badge bg-success';
+                    } else if (status.toLowerCase() === 'cancelled') {
+                        statusBadge.className = 'ms-2 badge bg-danger';
+                    } else if (status.toLowerCase() === 'completed') {
+                        statusBadge.className = 'ms-2 badge bg-info';
+                    } else {
+                        statusBadge.className = 'ms-2 badge bg-secondary';
+                    }
+                    
+                    // Special requests - if we had this data, we'd set it here
+                    const requestsContainer = document.getElementById('view_requests_container');
+                    const requestsText = document.getElementById('view_requests');
+                    // For this example, we'll use some dummy text
+                    requestsText.innerText = "Please prepare a cake for our anniversary celebration.";
+                    requestsContainer.style.display = 'block';
+                    
+                    // Hide loading and show details
+                    document.getElementById('reservation-details-loading').style.display = 'none';
+                    document.getElementById('reservation-details').style.display = 'block';
+                }, 500);
+            });
+        });
+        
+        // Cancel reservation button click
+        const cancelBtns = document.querySelectorAll('.cancel-reservation-btn');
+        cancelBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('cancel_id').value = this.getAttribute('data-id');
+                document.getElementById('cancel_name').textContent = this.getAttribute('data-name');
+                document.getElementById('cancel_date').textContent = this.getAttribute('data-date');
+                document.getElementById('cancel_time').textContent = this.getAttribute('data-time');
+            });
+        });
+        
+        // Filter by date
+        const dateFilter = document.getElementById('dateFilter');
+        dateFilter.addEventListener('change', function() {
+            filterReservations();
+        });
+        
+        // Filter by status
+        const statusFilter = document.getElementById('statusFilter');
+        statusFilter.addEventListener('change', function() {
+            filterReservations();
+        });
+        
+        // Search reservations
+        const searchInput = document.getElementById('searchReservation');
+        searchInput.addEventListener('input', function() {
+            filterReservations();
+        });
+        
+        // Clear filters
+        const clearBtn = document.getElementById('clearFilters');
+        clearBtn.addEventListener('click', function() {
+            dateFilter.value = '';
+            statusFilter.value = 'all';
+            searchInput.value = '';
+            filterReservations();
+        });
+        
+        function filterReservations() {
+            const dateValue = dateFilter.value;
+            const statusValue = statusFilter.value.toLowerCase();
+            const searchValue = searchInput.value.toLowerCase();
+            
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                // Filter by date
+                if (dateValue) {
+                    const dateCell = row.querySelector('td:nth-child(3)');
+                    if (dateCell) {
+                        // Convert displayed date format (e.g., "01 Jan 2023") to YYYY-MM-DD for comparison
+                        const dateText = dateCell.textContent.trim();
+                        const dateParts = dateText.split(' ');
+                        if (dateParts.length === 3) {
+                            const day = dateParts[0];
+                            const monthMap = {
+                                'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+                                'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+                            };
+                            const month = monthMap[dateParts[1]];
+                            const year = dateParts[2];
+                            const formattedDate = `${year}-${month}-${day.padStart(2, '0')}`;
+                            
+                            if (formattedDate !== dateValue) {
+                                showRow = false;
+                            }
+                        }
+                    }
+                }
+                
+                // Filter by status
+                if (statusValue !== 'all') {
+                    const status = row.getAttribute('data-status');
+                    if (status !== statusValue) {
+                        showRow = false;
+                    }
+                }
+                
+                // Filter by search term
+                if (searchValue) {
+                    const infoCell = row.querySelector('td:nth-child(2)');
+                    if (infoCell) {
+                        const infoText = infoCell.textContent.toLowerCase();
+                        if (!infoText.includes(searchValue)) {
+                            showRow = false;
+                        }
+                    }
+                }
+                
+                // Show or hide row
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        // Initialize charts
+        initReservationChart();
+        initStatusChart();
+        
+        function initReservationChart() {
+            const ctx = document.getElementById('reservationChart').getContext('2d');
+            
+            // Sample data - in a real app, this would come from your backend
+            const data = {
+                labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                datasets: [{
+                    label: 'Reservations',
+                    data: [5, 7, 10, 8, 12, 15, 20],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: data,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 5
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initStatusChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            
+            // Sample data - in a real app, this would come from your backend
+            const data = {
+                labels: ['Confirmed', 'Cancelled', 'Completed'],
+                datasets: [{
+                    data: [65, 10, 25],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)', // success - confirmed
+                        'rgba(220, 53, 69, 0.7)', // danger - cancelled
+                        'rgba(23, 162, 184, 0.7)'  // info - completed
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

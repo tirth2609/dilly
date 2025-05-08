@@ -1,0 +1,748 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Users - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        height: calc(100vh - 75px);
+        position: sticky;
+        top: 75px;
+    }
+    
+    .dashboard-content {
+        min-height: calc(100vh - 75px);
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: var(--accent-color);
+    }
+
+    .table-action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 32px;
+        text-align: center;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+    
+    .activity-item {
+        position: relative;
+        padding-left: 20px;
+        padding-bottom: 15px;
+        margin-bottom: 0;
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: var(--accent-color);
+    }
+    
+    .activity-item::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 18px;
+        width: 2px;
+        height: calc(100% - 10px);
+        background-color: #dee2e6;
+    }
+    
+    .activity-item:last-child::after {
+        display: none;
+    }
+    
+    .activity-date {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-3 col-xl-2">
+            <div class="sidebar bg-light p-3 rounded">
+                <h5 class="mb-3">Admin Menu</h5>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_menu_items') }}">
+                        <i class="fas fa-utensils me-2"></i> Manage Menu
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_categories') }}">
+                        <i class="fas fa-tags me-2"></i> Categories
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_reservations') }}">
+                        <i class="fas fa-calendar-check me-2"></i> Reservations
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_banquets') }}">
+                        <i class="fas fa-glass-cheers me-2"></i> Banquet Bookings
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_orders') }}">
+                        <i class="fas fa-shopping-cart me-2"></i> Orders
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('admin_users') }}">
+                        <i class="fas fa-users me-2"></i> Users
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_settings') }}">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9 col-xl-10">
+            <div class="dashboard-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Manage Users</h3>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-user-plus me-2"></i> Add New User
+                    </button>
+                </div>
+                
+                <!-- Search and filter -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8 mb-3 mb-md-0">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="searchUser" class="form-control" placeholder="Search by name, email or phone">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="userRoleFilter" class="form-select">
+                                    <option value="all">All Users</option>
+                                    <option value="admin">Admins</option>
+                                    <option value="user">Regular Users</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Table -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Joined</th>
+                                        <th>Orders</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr data-role="{{ 'admin' if user.is_admin else 'user' }}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar me-2">{{ user.username[0] }}</div>
+                                                <div>{{ user.username }}</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.phone or 'N/A' }}</td>
+                                        <td>{{ user.created_at.strftime('%d %b %Y') }}</td>
+                                        <td>{{ user.orders|length }}</td>
+                                        <td>
+                                            {% if user.is_admin %}
+                                            <span class="badge bg-primary">Admin</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">User</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-primary table-action-btn view-user-btn" 
+                                                        data-id="{{ user.id }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#viewUserModal">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-info table-action-btn edit-user-btn" 
+                                                        data-id="{{ user.id }}" 
+                                                        data-username="{{ user.username }}"
+                                                        data-email="{{ user.email }}"
+                                                        data-phone="{{ user.phone or '' }}"
+                                                        data-is-admin="{{ user.is_admin }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editUserModal">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger table-action-btn delete-user-btn"
+                                                        data-id="{{ user.id }}"
+                                                        data-username="{{ user.username }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteUserModal">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">No users found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Stats -->
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">User Growth</h5>
+                                <canvas id="userGrowthChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">New Users</h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0 bg-success p-3 rounded">
+                                        <i class="fas fa-user-plus text-white"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h3 class="mb-0">{{ new_users_count }}</h3>
+                                        <div class="text-muted">This month</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 bg-primary p-3 rounded">
+                                        <i class="fas fa-users text-white"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h3 class="mb-0">{{ total_users_count }}</h3>
+                                        <div class="text-muted">Total users</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Recent Activity</h5>
+                                <ul class="list-unstyled mt-3">
+                                    {% for activity in recent_activities %}
+                                    <li class="activity-item">
+                                        <div>{{ activity.description }}</div>
+                                        <small class="activity-date">{{ activity.date.strftime('%d %b, %H:%M') }}</small>
+                                    </li>
+                                    {% else %}
+                                    <li>No recent activity.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View User Modal -->
+<div class="modal fade" id="viewUserModal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewUserModalLabel">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="user-details-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading user details...</p>
+                </div>
+                <div id="user-details" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow h-100">
+                                <div class="card-body">
+                                    <div class="text-center mb-4">
+                                        <div class="user-avatar mx-auto" style="width: 80px; height: 80px; font-size: 2rem;" id="view_avatar"></div>
+                                        <h4 class="mt-3 mb-0" id="view_username"></h4>
+                                        <span class="badge bg-primary mt-2" id="view_role"></span>
+                                        <p class="text-muted mb-0" id="view_since"></p>
+                                    </div>
+                                    <hr>
+                                    <h6>Contact Information</h6>
+                                    <p><strong>Email:</strong> <span id="view_email"></span></p>
+                                    <p><strong>Phone:</strong> <span id="view_phone"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow h-100">
+                                <div class="card-body">
+                                    <h6>Activity Summary</h6>
+                                    <div class="row text-center">
+                                        <div class="col-4 p-3">
+                                            <h2 id="view_orders_count">0</h2>
+                                            <p class="text-muted mb-0">Orders</p>
+                                        </div>
+                                        <div class="col-4 p-3">
+                                            <h2 id="view_reservations_count">0</h2>
+                                            <p class="text-muted mb-0">Reservations</p>
+                                        </div>
+                                        <div class="col-4 p-3">
+                                            <h2 id="view_addresses_count">0</h2>
+                                            <p class="text-muted mb-0">Addresses</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <h6>Last Login</h6>
+                                    <p id="view_last_login" class="mb-0">May 7, 2025 at 10:23 AM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Recent Orders</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="list-group list-group-flush" id="view_recent_orders">
+                                        <!-- Recent orders will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Recent Reservations</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="list-group list-group-flush" id="view_recent_reservations">
+                                        <!-- Recent reservations will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card border-0 shadow">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Saved Addresses</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush" id="view_addresses">
+                                <!-- Addresses will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary edit-from-view" data-id="">Edit User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_add_user') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin" value="1">
+                        <label class="form-check-label" for="is_admin">Admin User</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_edit_user') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="mb-3">
+                        <label for="edit_username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="edit_username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="edit_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="edit_phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="edit_password" name="password">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="edit_is_admin" name="is_admin" value="1">
+                        <label class="form-check-label" for="edit_is_admin">Admin User</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_delete_user') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel">Delete User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="delete_id" name="id">
+                    <p>Are you sure you want to delete the user <strong id="delete_username"></strong>?</p>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Warning: This action cannot be undone. All data associated with this user will be permanently deleted.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize user growth chart
+        const ctx = document.getElementById('userGrowthChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'New Users',
+                    data: [5, 10, 8, 15, 12, 20],
+                    fill: true,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Search users
+        const searchInput = document.getElementById('searchUser');
+        searchInput.addEventListener('input', filterUsers);
+        
+        // Filter by role
+        const roleFilter = document.getElementById('userRoleFilter');
+        roleFilter.addEventListener('change', filterUsers);
+        
+        function filterUsers() {
+            const searchValue = searchInput.value.toLowerCase();
+            const roleValue = roleFilter.value;
+            
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                // Role filter
+                if (roleValue !== 'all') {
+                    const userRole = row.getAttribute('data-role');
+                    if (userRole !== roleValue) {
+                        showRow = false;
+                    }
+                }
+                
+                // Search filter
+                if (searchValue) {
+                    const usernameTd = row.querySelector('td:nth-child(1)');
+                    const emailTd = row.querySelector('td:nth-child(2)');
+                    const phoneTd = row.querySelector('td:nth-child(3)');
+                    
+                    const username = usernameTd ? usernameTd.textContent.toLowerCase() : '';
+                    const email = emailTd ? emailTd.textContent.toLowerCase() : '';
+                    const phone = phoneTd ? phoneTd.textContent.toLowerCase() : '';
+                    
+                    if (!username.includes(searchValue) && !email.includes(searchValue) && !phone.includes(searchValue)) {
+                        showRow = false;
+                    }
+                }
+                
+                // Show/hide row
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        // View user details
+        const viewBtns = document.querySelectorAll('.view-user-btn');
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                document.querySelector('.edit-from-view').setAttribute('data-id', userId);
+                
+                // Show loading and hide details
+                document.getElementById('user-details-loading').style.display = 'block';
+                document.getElementById('user-details').style.display = 'none';
+                
+                // In a real app, this would make an AJAX call to get user details
+                // For now, we'll simulate it with a timeout
+                setTimeout(() => {
+                    // Find the corresponding edit button to get user data
+                    const editBtn = document.querySelector(`.edit-user-btn[data-id="${userId}"]`);
+                    
+                    const username = editBtn.getAttribute('data-username');
+                    const email = editBtn.getAttribute('data-email');
+                    const phone = editBtn.getAttribute('data-phone') || 'Not provided';
+                    const isAdmin = editBtn.getAttribute('data-is-admin') === 'True';
+                    
+                    // Set user details
+                    document.getElementById('view_username').textContent = username;
+                    document.getElementById('view_email').textContent = email;
+                    document.getElementById('view_phone').textContent = phone;
+                    document.getElementById('view_role').textContent = isAdmin ? 'Admin' : 'User';
+                    document.getElementById('view_avatar').textContent = username[0].toUpperCase();
+                    document.getElementById('view_since').textContent = 'Member since May 2025'; // Example date
+                    
+                    // Set activity counts (these would come from the API in a real app)
+                    document.getElementById('view_orders_count').textContent = Math.floor(Math.random() * 10);
+                    document.getElementById('view_reservations_count').textContent = Math.floor(Math.random() * 5);
+                    document.getElementById('view_addresses_count').textContent = Math.floor(Math.random() * 3);
+                    
+                    // Sample orders
+                    const ordersContainer = document.getElementById('view_recent_orders');
+                    ordersContainer.innerHTML = '';
+                    
+                    // Generate some sample orders (in a real app, these would come from the API)
+                    const sampleOrders = [
+                        { id: 101, date: 'May 5, 2025', total: 850.75, status: 'Completed' },
+                        { id: 98, date: 'May 1, 2025', total: 520.00, status: 'Completed' },
+                        { id: 87, date: 'Apr 25, 2025', total: 740.50, status: 'Completed' }
+                    ];
+                    
+                    if (sampleOrders.length > 0) {
+                        sampleOrders.forEach(order => {
+                            const orderHtml = `
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Order #${order.id}</strong>
+                                            <div class="small text-muted">${order.date}</div>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success">${order.status}</span>
+                                            <div class="small">₹${order.total.toFixed(2)}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            `;
+                            ordersContainer.innerHTML += orderHtml;
+                        });
+                    } else {
+                        ordersContainer.innerHTML = '<div class="list-group-item">No orders found.</div>';
+                    }
+                    
+                    // Sample reservations
+                    const reservationsContainer = document.getElementById('view_recent_reservations');
+                    reservationsContainer.innerHTML = '';
+                    
+                    // Generate some sample reservations (in a real app, these would come from the API)
+                    const sampleReservations = [
+                        { id: 45, date: 'May 10, 2025', time: '7:30 PM', guests: 4, status: 'Confirmed' },
+                        { id: 39, date: 'Apr 28, 2025', time: '8:00 PM', guests: 2, status: 'Completed' }
+                    ];
+                    
+                    if (sampleReservations.length > 0) {
+                        sampleReservations.forEach(reservation => {
+                            const reservationHtml = `
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>${reservation.date}</strong>
+                                            <div class="small text-muted">${reservation.time} • ${reservation.guests} guests</div>
+                                        </div>
+                                        <span class="badge bg-success">${reservation.status}</span>
+                                    </div>
+                                </a>
+                            `;
+                            reservationsContainer.innerHTML += reservationHtml;
+                        });
+                    } else {
+                        reservationsContainer.innerHTML = '<div class="list-group-item">No reservations found.</div>';
+                    }
+                    
+                    // Sample addresses
+                    const addressesContainer = document.getElementById('view_addresses');
+                    addressesContainer.innerHTML = '';
+                    
+                    // Generate some sample addresses (in a real app, these would come from the API)
+                    const sampleAddresses = [
+                        { id: 12, line1: '123 Main St', line2: 'Apt 4B', city: 'Bangalore', state: 'Karnataka', postal: '560001', is_default: true },
+                        { id: 8, line1: '456 Work Ave', line2: '', city: 'Bangalore', state: 'Karnataka', postal: '560008', is_default: false }
+                    ];
+                    
+                    if (sampleAddresses.length > 0) {
+                        sampleAddresses.forEach(address => {
+                            const addressHtml = `
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div>${address.line1}</div>
+                                            ${address.line2 ? `<div>${address.line2}</div>` : ''}
+                                            <div>${address.city}, ${address.state} ${address.postal}</div>
+                                        </div>
+                                        ${address.is_default ? '<span class="badge bg-primary">Default</span>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                            addressesContainer.innerHTML += addressHtml;
+                        });
+                    } else {
+                        addressesContainer.innerHTML = '<div class="list-group-item">No addresses found.</div>';
+                    }
+                    
+                    // Hide loading and show details
+                    document.getElementById('user-details-loading').style.display = 'none';
+                    document.getElementById('user-details').style.display = 'block';
+                }, 500);
+            });
+        });
+        
+        // Edit from view
+        document.querySelector('.edit-from-view').addEventListener('click', function() {
+            const userId = this.getAttribute('data-id');
+            const editBtn = document.querySelector(`.edit-user-btn[data-id="${userId}"]`);
+            
+            // Close the view modal
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewUserModal'));
+            viewModal.hide();
+            
+            // Trigger the edit button click event
+            editBtn.click();
+        });
+        
+        // Edit user
+        const editBtns = document.querySelectorAll('.edit-user-btn');
+        editBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                const username = this.getAttribute('data-username');
+                const email = this.getAttribute('data-email');
+                const phone = this.getAttribute('data-phone');
+                const isAdmin = this.getAttribute('data-is-admin') === 'True';
+                
+                document.getElementById('edit_id').value = userId;
+                document.getElementById('edit_username').value = username;
+                document.getElementById('edit_email').value = email;
+                document.getElementById('edit_phone').value = phone || '';
+                document.getElementById('edit_is_admin').checked = isAdmin;
+            });
+        });
+        
+        // Delete user
+        const deleteBtns = document.querySelectorAll('.delete-user-btn');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                const username = this.getAttribute('data-username');
+                
+                document.getElementById('delete_id').value = userId;
+                document.getElementById('delete_username').textContent = username;
+            });
+        });
+    });
+</script>
+{% endblock %}
