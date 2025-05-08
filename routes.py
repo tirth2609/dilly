@@ -538,7 +538,8 @@ def init_routes(app):
                               users=users,
                               total_users_count=total_users_count,
                               new_users_count=new_users_count,
-                              recent_activities=recent_activities)
+                              recent_activities=recent_activities,
+                              datetime=datetime)
     
     @app.route('/admin/users/add', methods=['POST'])
     @login_required
@@ -638,7 +639,7 @@ def init_routes(app):
     @login_required
     @admin_required
     def admin_settings():
-        return render_template('admin/settings.html')
+        return render_template('admin/settings.html', datetime=datetime)
     
     # Placeholder settings update routes
     @app.route('/admin/update-restaurant-settings', methods=['POST'])
@@ -703,7 +704,7 @@ def init_routes(app):
     @app.route('/reservation/success/<int:reservation_id>')
     def reservation_success(reservation_id):
         reservation = Reservation.query.get_or_404(reservation_id)
-        return render_template('reservation_success.html', reservation=reservation)
+        return render_template('reservation_success.html', reservation=reservation, datetime=datetime)
     
     @app.route('/banquet', methods=['GET', 'POST'])
     def banquet():
@@ -730,7 +731,7 @@ def init_routes(app):
     @app.route('/banquet/success/<int:booking_id>')
     def banquet_success(booking_id):
         booking = BanquetBooking.query.get_or_404(booking_id)
-        return render_template('banquet_success.html', booking=booking)
+        return render_template('banquet_success.html', booking=booking, datetime=datetime)
     
     @app.route('/register', methods=['GET', 'POST'])
     def register():
@@ -787,7 +788,8 @@ def init_routes(app):
                               reservations=user_reservations, 
                               banquets=user_banquets, 
                               orders=user_orders,
-                              addresses=user_addresses)
+                              addresses=user_addresses,
+                              datetime=datetime)
     
     @app.route('/profile/address/add', methods=['GET', 'POST'])
     @login_required
@@ -866,7 +868,8 @@ def init_routes(app):
         return render_template('qr_menu.html', 
                               categories=categories, 
                               menu_items=menu_items, 
-                              table_id=table_id)
+                              table_id=table_id,
+                              datetime=datetime)
     
     @app.route('/qr-menu/order', methods=['POST'])
     def qr_menu_order():
@@ -941,7 +944,8 @@ def init_routes(app):
         return render_template('takeaway.html', 
                               categories=categories, 
                               menu_items=menu_items,
-                              form=form)
+                              form=form,
+                              datetime=datetime)
     
     @app.route('/takeaway/place-order', methods=['POST'])
     def place_takeaway_order():
@@ -1032,7 +1036,7 @@ def init_routes(app):
     @app.route('/order/success/<int:order_id>')
     def order_success(order_id):
         order = Order.query.get_or_404(order_id)
-        return render_template('order_success.html', order=order)
+        return render_template('order_success.html', order=order, datetime=datetime)
     
     @app.route('/track-order', methods=['GET', 'POST'])
     def track_order():
@@ -1045,7 +1049,7 @@ def init_routes(app):
             if not order:
                 flash('Order not found. Please check the order ID and try again.', 'danger')
         
-        return render_template('track_order.html', form=form, order=order)
+        return render_template('track_order.html', form=form, order=order, datetime=datetime)
     
     # API endpoints for AJAX calls
     
@@ -1269,8 +1273,8 @@ def init_routes(app):
     
     @app.errorhandler(404)
     def page_not_found(e):
-        return render_template('error.html', error_code=404, error_message='Page not found'), 404
+        return render_template('error.html', error_code=404, error_message='Page not found', datetime=datetime), 404
     
     @app.errorhandler(500)
     def internal_server_error(e):
-        return render_template('error.html', error_code=500, error_message='Server error'), 500
+        return render_template('error.html', error_code=500, error_message='Server error', datetime=datetime), 500
