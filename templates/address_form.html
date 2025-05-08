@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }} - Dilly's Veg Kitchen{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0">{{ title }}</h3>
+                            <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Profile
+                            </a>
+                        </div>
+                        
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label for="address_line1" class="form-label">Address Line 1 *</label>
+                                {{ form.address_line1(class="form-control", placeholder="Street address, P.O. box, company name") }}
+                                {% if form.address_line1.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.address_line1.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="address_line2" class="form-label">Address Line 2</label>
+                                {{ form.address_line2(class="form-control", placeholder="Apartment, suite, unit, building, floor, etc.") }}
+                                {% if form.address_line2.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.address_line2.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="city" class="form-label">City *</label>
+                                    {{ form.city(class="form-control", placeholder="City") }}
+                                    {% if form.city.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.city.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="state" class="form-label">State *</label>
+                                    {{ form.state(class="form-control", placeholder="State") }}
+                                    {% if form.state.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.state.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="postal_code" class="form-label">Postal Code *</label>
+                                {{ form.postal_code(class="form-control", placeholder="Postal code") }}
+                                {% if form.postal_code.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.postal_code.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4 form-check">
+                                {{ form.is_default(class="form-check-input") }}
+                                <label class="form-check-label" for="is_default">Set as default address</label>
+                            </div>
+                            
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <h4 class="mb-3">Address Tips</h4>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item bg-transparent border-0 ps-0">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Complete Address:</strong> Provide the full address including building name, apartment number, and street name for faster delivery.
+                            </li>
+                            <li class="list-group-item bg-transparent border-0 ps-0">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Landmarks:</strong> Mention nearby landmarks in Address Line 2 to help the delivery person locate your address easily.
+                            </li>
+                            <li class="list-group-item bg-transparent border-0 ps-0">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Default Address:</strong> Setting an address as default will automatically select it during checkout.
+                            </li>
+                            <li class="list-group-item bg-transparent border-0 ps-0">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Multiple Addresses:</strong> You can save multiple addresses for different delivery locations such as home, office, etc.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+
+{% block title %}Dilly's Veg Kitchen - Vegetarian Restaurant{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="hero-banner" style="background-image: url('https://pixabay.com/get/g86b46321a9af1771cba65da4692cbd10f9cd829337affe5dbce99458ace07a46a6d2ade2334af7d7bacff409dff51a33d58ba9fa4eaa1f242052438610022b90_1280.jpg');">
+    <div class="container hero-content text-center">
+        <h1 class="hero-title">Delicious Vegetarian Cuisine</h1>
+        <p class="lead mb-4">Experience the finest vegetarian dishes prepared with fresh ingredients and authentic flavors</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">View Menu</a>
+            <a href="{{ url_for('reservation') }}" class="btn btn-outline-light btn-lg">Book a Table</a>
+        </div>
+    </div>
+</section>
+
+<!-- Welcome Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="position-relative">
+                    <img src="https://pixabay.com/get/g9b316f291994680a4388b8dc571bc5803766179d1e68f43c00cbdcf03f7bd915ec744db77c5d26b32874c4a7762d94f5c2bad59cdc638b02143a569db6100f6c_1280.jpg" alt="Restaurant Interior" class="img-fluid rounded">
+                    <div class="position-absolute top-0 start-0 translate-middle bg-primary text-white rounded-circle p-3">
+                        <h3 class="m-0">20+</h3>
+                        <p class="m-0">Years</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h2 class="mb-4">Welcome to Dilly's Veg Kitchen</h2>
+                <p class="lead">Where tradition meets innovation in vegetarian cuisine</p>
+                <p>At Dilly's Veg Kitchen, we believe in serving high-quality vegetarian food that doesn't compromise on taste or presentation. Our chefs carefully craft each dish using fresh, locally-sourced ingredients to create memorable dining experiences.</p>
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-leaf fa-2x text-primary me-3"></i>
+                            <div>
+                                <h5 class="mb-1">Fresh Ingredients</h5>
+                                <p class="mb-0">Locally sourced produce</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-utensils fa-2x text-primary me-3"></i>
+                            <div>
+                                <h5 class="mb-1">Expert Chefs</h5>
+                                <p class="mb-0">Passionate culinary team</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-seedling fa-2x text-primary me-3"></i>
+                            <div>
+                                <h5 class="mb-1">100% Vegetarian</h5>
+                                <p class="mb-0">Pure vegetarian kitchen</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-award fa-2x text-primary me-3"></i>
+                            <div>
+                                <h5 class="mb-1">Award Winning</h5>
+                                <p class="mb-0">Recognized excellence</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('about') }}" class="btn btn-outline-primary mt-3">Read Our Story</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Menu Items -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Our Delicious Menu</h2>
+            <p class="lead">Explore our signature vegetarian dishes crafted with love and expertise</p>
+        </div>
+        <div class="row">
+            {% for item in featured_items %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="menu-card">
+                    <img src="{{ item.image_url or 'https://pixabay.com/get/gfb19f96319953cdff51aa1a2886e53f8f661af51da1012f9b0a893d8f50ff35f10acd8d7fb22ad40a1e9f2d07d5733b8f9cb2650f4fed0a01c7d36b1ae9048f4_1280.jpg' }}" alt="{{ item.name }}" class="menu-card-img">
+                    <div class="menu-card-body">
+                        <h5 class="menu-card-title">{{ item.name }}</h5>
+                        <p class="menu-card-text">{{ item.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="menu-card-price">₹{{ "%.2f"|format(item.price) }}</p>
+                            <button class="btn btn-sm btn-outline-primary">Add to Cart</button>
+                        </div>
+                        <div class="menu-dietary-tags">
+                            {% if item.is_vegan %}
+                            <span class="menu-dietary-tag tag-vegan">Vegan</span>
+                            {% endif %}
+                            {% if item.is_gluten_free %}
+                            <span class="menu-dietary-tag tag-gluten-free">Gluten Free</span>
+                            {% endif %}
+                            {% if item.is_jain %}
+                            <span class="menu-dietary-tag tag-jain">Jain</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center">
+                <p>No featured items available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">View Full Menu</a>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Our Services</h2>
+            <p class="lead">Experience all that Dilly's Veg Kitchen has to offer</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <img src="https://pixabay.com/get/g975197d9d72f4306f1027a54e278d30f60b8629a65a5d3c0c5ca8728d596945dbf5abe10b13a3d1ffb785f5d7bcf3eb6b156561990acc343d943d73aab9cf0ca_1280.jpg" class="card-img-top" alt="Dine-In">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Dine-In Experience</h4>
+                        <p class="card-text">Enjoy our authentic vegetarian cuisine in a warm and inviting atmosphere with attentive service.</p>
+                        <a href="{{ url_for('reservation') }}" class="btn btn-outline-primary">Book a Table</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <img src="https://pixabay.com/get/gb60f5bb82a66132cda69ace6ba58cbe8ab32863f1b34c970ac853c39fc2ac4b560aa11bbdc29bd5b3e061d5dcf43e9bc36e246562f9c158293e93804b136a836_1280.jpg" class="card-img-top" alt="Takeaway">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Takeaway Orders</h4>
+                        <p class="card-text">Enjoy our delicious food at home or anywhere with our convenient takeaway service.</p>
+                        <a href="{{ url_for('takeaway') }}" class="btn btn-outline-primary">Order Takeaway</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <img src="https://pixabay.com/get/gc61e5aa8f7fbe4db951fcb7fdee1a25d974d97126d80c85ce12d7d0b43e0d7e056727dff9dba1a56fad3d2c85bacbc147dc7f82dd086750f8ea796d0cdefcc13_1280.jpg" class="card-img-top" alt="Banquet Hall">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Banquet Hall</h4>
+                        <p class="card-text">Host your special occasions in our elegant banquet hall with customized vegetarian menus.</p>
+                        <a href="{{ url_for('banquet') }}" class="btn btn-outline-primary">Book Banquet</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>What Our Customers Say</h2>
+            <p class="lead">Hear from those who have experienced our hospitality</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        <i class="fas fa-quote-left text-primary mb-3"></i>
+                        <p>"The food at Dilly's is absolutely delicious! As a vegan, I often struggle to find good options, but here I'm spoiled for choice. The staff are incredibly knowledgeable about ingredients too."</p>
+                    </div>
+                    <div class="d-flex align-items-center mt-3">
+                        <div class="testimonial-author ms-3">
+                            <h5 class="mb-0">Priya Sharma</h5>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        <i class="fas fa-quote-left text-primary mb-3"></i>
+                        <p>"We had our daughter's engagement celebration in the banquet hall and everything was perfect. The customized menu was exceptional and all our guests were impressed with the quality of food."</p>
+                    </div>
+                    <div class="d-flex align-items-center mt-3">
+                        <div class="testimonial-author ms-3">
+                            <h5 class="mb-0">Rajesh Patel</h5>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        <i class="fas fa-quote-left text-primary mb-3"></i>
+                        <p>"The QR code menu system is so convenient! I love being able to order directly from my phone and not have to wait for service. The food arrives quickly and is always hot and fresh."</p>
+                    </div>
+                    <div class="d-flex align-items-center mt-3">
+                        <div class="testimonial-author ms-3">
+                            <h5 class="mb-0">Arun Mehta</h5>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5" style="background-color: var(--primary-color);">
+    <div class="container text-center text-white">
+        <h2 class="mb-4">Ready to Experience Our Delicious Food?</h2>
+        <p class="lead mb-4">Book a table now or order for takeaway to enjoy our authentic vegetarian cuisine</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ url_for('reservation') }}" class="btn btn-light btn-lg">Book a Table</a>
+            <a href="{{ url_for('takeaway') }}" class="btn btn-outline-light btn-lg">Order Takeaway</a>
+            <a href="{{ url_for('menu') }}" class="btn btn-outline-light btn-lg">View Menu</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,259 @@
+{% extends "layout.html" %}
+
+{% block title %}Menu - Dilly's Veg Kitchen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-btn.active {
+        background-color: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    
+    .menu-section {
+        padding-top: 70px;
+        margin-top: -60px;
+    }
+    
+    .category-nav {
+        position: sticky;
+        top: 90px;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Menu Page Banner -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-4 mb-3">Our Menu</h1>
+                <p class="lead">Explore our wide range of delicious vegetarian dishes prepared with fresh ingredients and authentic flavors. All prices are in Indian Rupees (₹).</p>
+                
+                <!-- Menu Filters -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Filter by Dietary Preferences</h5>
+                        <form id="menu-filter-form">
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="is_vegan">
+                                    <i class="fas fa-leaf me-1"></i> Vegan
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="is_gluten_free">
+                                    <i class="fas fa-wheat-alt me-1"></i> Gluten Free
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="is_jain">
+                                    <i class="fas fa-seedling me-1"></i> Jain
+                                </button>
+                            </div>
+                            <input type="hidden" name="is_vegan" id="is_vegan" value="false">
+                            <input type="hidden" name="is_gluten_free" id="is_gluten_free" value="false">
+                            <input type="hidden" name="is_jain" id="is_jain" value="false">
+                            <input type="hidden" name="category_id" id="category_id" value="">
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" id="clear-filters" class="btn btn-sm btn-link">Clear all filters</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://pixabay.com/get/g625400df9ff3b58f21f2774b8028e5b96b3aff595f6382963eb6d53ae6187cee58953e962fa059d13862bd9c3fd5cdba06f8994046616080a60e8e317dba5ae9_1280.jpg" alt="Menu Items Showcase" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Navigation -->
+<section class="py-3 bg-white border-bottom sticky-top category-nav">
+    <div class="container">
+        <nav class="nav nav-pills nav-fill flex-nowrap overflow-auto">
+            <a class="nav-link active" href="#all">All Items</a>
+            {% for category in categories %}
+            <a class="nav-link" href="#category-{{ category.id }}">{{ category.name }}</a>
+            {% endfor %}
+        </nav>
+    </div>
+</section>
+
+<!-- Menu Items -->
+<section class="py-5">
+    <div class="container">
+        <div id="all" class="menu-section mb-5">
+            <h2 class="mb-4">All Menu Items</h2>
+            <div class="row" id="menu-items-container">
+                {% for item in menu_items %}
+                <div class="col-md-6 col-lg-4 mb-4 menu-item" 
+                     data-category="{{ item.category_id }}"
+                     data-vegan="{{ 'true' if item.is_vegan else 'false' }}"
+                     data-gluten-free="{{ 'true' if item.is_gluten_free else 'false' }}"
+                     data-jain="{{ 'true' if item.is_jain else 'false' }}">
+                    <div class="menu-card">
+                        <img src="{{ item.image_url or 'https://pixabay.com/get/gfb19f96319953cdff51aa1a2886e53f8f661af51da1012f9b0a893d8f50ff35f10acd8d7fb22ad40a1e9f2d07d5733b8f9cb2650f4fed0a01c7d36b1ae9048f4_1280.jpg' }}" alt="{{ item.name }}" class="menu-card-img">
+                        <div class="menu-card-body">
+                            <h5 class="menu-card-title">{{ item.name }}</h5>
+                            <p class="menu-card-text">{{ item.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="menu-card-price">₹{{ "%.2f"|format(item.price) }}</p>
+                                <button class="btn btn-sm btn-outline-primary add-to-cart-btn" 
+                                        data-item-id="{{ item.id }}"
+                                        data-item-name="{{ item.name }}"
+                                        data-item-price="{{ item.price }}">Add to Cart</button>
+                            </div>
+                            <div class="menu-dietary-tags">
+                                {% if item.is_vegan %}
+                                <span class="menu-dietary-tag tag-vegan">Vegan</span>
+                                {% endif %}
+                                {% if item.is_gluten_free %}
+                                <span class="menu-dietary-tag tag-gluten-free">Gluten Free</span>
+                                {% endif %}
+                                {% if item.is_jain %}
+                                <span class="menu-dietary-tag tag-jain">Jain</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Categories Sections -->
+        {% for category in categories %}
+        <div id="category-{{ category.id }}" class="menu-section mb-5">
+            <h2 class="mb-4">{{ category.name }}</h2>
+            <p class="lead mb-4">{{ category.description }}</p>
+            
+            <div class="row">
+                {% for item in menu_items if item.category_id == category.id %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="menu-card">
+                        <img src="{{ item.image_url or 'https://pixabay.com/get/gfb19f96319953cdff51aa1a2886e53f8f661af51da1012f9b0a893d8f50ff35f10acd8d7fb22ad40a1e9f2d07d5733b8f9cb2650f4fed0a01c7d36b1ae9048f4_1280.jpg' }}" alt="{{ item.name }}" class="menu-card-img">
+                        <div class="menu-card-body">
+                            <h5 class="menu-card-title">{{ item.name }}</h5>
+                            <p class="menu-card-text">{{ item.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="menu-card-price">₹{{ "%.2f"|format(item.price) }}</p>
+                                <button class="btn btn-sm btn-outline-primary add-to-cart-btn" 
+                                        data-item-id="{{ item.id }}"
+                                        data-item-name="{{ item.name }}"
+                                        data-item-price="{{ item.price }}">Add to Cart</button>
+                            </div>
+                            <div class="menu-dietary-tags">
+                                {% if item.is_vegan %}
+                                <span class="menu-dietary-tag tag-vegan">Vegan</span>
+                                {% endif %}
+                                {% if item.is_gluten_free %}
+                                <span class="menu-dietary-tag tag-gluten-free">Gluten Free</span>
+                                {% endif %}
+                                {% if item.is_jain %}
+                                <span class="menu-dietary-tag tag-jain">Jain</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12">
+                    <p>No items available in this category.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Cart Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="cart-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Shopping Cart</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="cart-toast-body">
+            Item added to cart!
+        </div>
+    </div>
+</div>
+
+<!-- Floating Order Button (Mobile) -->
+<div class="d-md-none position-fixed bottom-0 start-0 end-0 p-3 bg-white border-top shadow">
+    <a href="{{ url_for('takeaway') }}" class="btn btn-primary w-100">
+        <i class="fas fa-shopping-cart me-2"></i> Proceed to Order
+        <span class="badge bg-light text-dark ms-2" id="cart-count">0</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter buttons
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        
+        // Toggle filter buttons and update hidden inputs
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                const hiddenInput = document.getElementById(filter);
+                
+                this.classList.toggle('active');
+                
+                if (this.classList.contains('active')) {
+                    hiddenInput.value = 'true';
+                } else {
+                    hiddenInput.value = 'false';
+                }
+                
+                // Trigger form change event to apply filters
+                const event = new Event('change');
+                document.getElementById('menu-filter-form').dispatchEvent(event);
+            });
+        });
+        
+        // Clear all filters
+        clearFiltersBtn.addEventListener('click', function() {
+            filterButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById('is_vegan').value = 'false';
+            document.getElementById('is_gluten_free').value = 'false';
+            document.getElementById('is_jain').value = 'false';
+            document.getElementById('category_id').value = '';
+            
+            // Trigger form change event to reset filters
+            const event = new Event('change');
+            document.getElementById('menu-filter-form').dispatchEvent(event);
+        });
+        
+        // Category navigation
+        document.querySelectorAll('.category-nav .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                document.querySelectorAll('.category-nav .nav-link').forEach(l => {
+                    l.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Set category filter if not "All Items"
+                if (this.getAttribute('href') !== '#all') {
+                    const categoryId = this.getAttribute('href').replace('#category-', '');
+                    document.getElementById('category_id').value = categoryId;
+                } else {
+                    document.getElementById('category_id').value = '';
+                }
+                
+                // Trigger form change event to apply category filter
+                const event = new Event('change');
+                document.getElementById('menu-filter-form').dispatchEvent(event);
+            });
+        });
+    });
+</script>
+{% endblock %}

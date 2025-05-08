@@ -1,0 +1,695 @@
+{% extends "layout.html" %}
+
+{% block title %}Order Takeaway - Dilly's Veg Kitchen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .menu-filters {
+        position: sticky;
+        top: 90px;
+        z-index: 10;
+        background-color: #fff;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .category-btn {
+        white-space: nowrap;
+        margin-bottom: 5px;
+    }
+    
+    .category-btn.active {
+        background-color: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    
+    .filter-tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .filter-tag {
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-tag.active {
+        color: white;
+    }
+    
+    .filter-tag-vegan.active {
+        background-color: var(--secondary-color);
+    }
+    
+    .filter-tag-gluten-free.active {
+        background-color: #9c27b0;
+    }
+    
+    .filter-tag-jain.active {
+        background-color: #e91e63;
+    }
+    
+    .cart-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 0.7rem;
+    }
+    
+    .cart-container {
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        background-color: #fff;
+        padding: 1.5rem;
+        position: sticky;
+        top: 90px;
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    
+    .step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+    
+    .step::after {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 50%;
+        width: 100%;
+        height: 2px;
+        background-color: #e9ecef;
+        z-index: -1;
+    }
+    
+    .step:last-child::after {
+        display: none;
+    }
+    
+    .step-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step.active .step-icon {
+        background-color: var(--accent-color);
+        color: white;
+    }
+    
+    .step.completed .step-icon {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Takeaway Banner -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-4 mb-3">Order Takeaway</h1>
+                <p class="lead">Order our delicious vegetarian food to enjoy at home or anywhere you like. All prices are in Indian Rupees (₹).</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://pixabay.com/get/gaae0f91b3a96ea33341677ff68333ecf2fcde2d71bd6f0400ca4245f3de610524d33085f91fbf8aab7d10d199a05ec0edb0087a8c006dd5b605e96be468311f6_1280.jpg" alt="Takeaway food" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Order Process Steps -->
+<section class="py-4 bg-white border-bottom">
+    <div class="container">
+        <div class="step-indicator">
+            <div class="step active" id="step-1">
+                <div class="step-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="step-title">Select Items</div>
+            </div>
+            <div class="step" id="step-2">
+                <div class="step-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="step-title">Review Order</div>
+            </div>
+            <div class="step" id="step-3">
+                <div class="step-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="step-title">Payment</div>
+            </div>
+            <div class="step" id="step-4">
+                <div class="step-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="step-title">Confirmation</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Filters -->
+<section class="menu-filters border-bottom">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="overflow-auto py-2" style="max-width: 100%;">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary category-btn active" data-category="all">All</button>
+                    {% for category in categories %}
+                    <button class="btn btn-outline-primary category-btn" data-category="{{ category.id }}">{{ category.name }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="filter-tag-container py-2">
+                <span class="filter-tag filter-tag-vegan" data-filter="vegan">
+                    <i class="fas fa-leaf"></i> Vegan
+                </span>
+                <span class="filter-tag filter-tag-gluten-free" data-filter="gluten-free">
+                    <i class="fas fa-wheat-alt"></i> Gluten Free
+                </span>
+                <span class="filter-tag filter-tag-jain" data-filter="jain">
+                    <i class="fas fa-seedling"></i> Jain
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Items and Cart -->
+<section class="py-5" id="menu-section">
+    <div class="container">
+        <div class="row">
+            <!-- Menu Items -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div id="menu-items-container">
+                    {% for category in categories %}
+                    <div class="mb-5 menu-category" id="category-{{ category.id }}">
+                        <h3 class="mb-4">{{ category.name }}</h3>
+                        <div class="row">
+                            {% for item in menu_items if item.category_id == category.id %}
+                            <div class="col-md-6 mb-4 menu-item" 
+                                 data-category="{{ item.category_id }}"
+                                 data-vegan="{{ 'true' if item.is_vegan else 'false' }}"
+                                 data-gluten-free="{{ 'true' if item.is_gluten_free else 'false' }}"
+                                 data-jain="{{ 'true' if item.is_jain else 'false' }}">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="row g-0">
+                                        <div class="col-4">
+                                            <img src="{{ item.image_url or 'https://pixabay.com/get/gfb19f96319953cdff51aa1a2886e53f8f661af51da1012f9b0a893d8f50ff35f10acd8d7fb22ad40a1e9f2d07d5733b8f9cb2650f4fed0a01c7d36b1ae9048f4_1280.jpg' }}" 
+                                                 class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ item.name }}">
+                                        </div>
+                                        <div class="col-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ item.name }}</h5>
+                                                <p class="card-text small">{{ item.description }}</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <p class="card-text fw-bold text-primary mb-0">₹{{ "%.2f"|format(item.price) }}</p>
+                                                    <button class="btn btn-sm btn-outline-primary add-to-cart-btn" 
+                                                            data-item-id="{{ item.id }}"
+                                                            data-item-name="{{ item.name }}"
+                                                            data-item-price="{{ item.price }}">Add</button>
+                                                </div>
+                                                <div class="mt-2">
+                                                    {% if item.is_vegan %}
+                                                    <span class="badge bg-success me-1">Vegan</span>
+                                                    {% endif %}
+                                                    {% if item.is_gluten_free %}
+                                                    <span class="badge bg-purple me-1">Gluten Free</span>
+                                                    {% endif %}
+                                                    {% if item.is_jain %}
+                                                    <span class="badge bg-pink me-1">Jain</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-12">
+                                <p>No items available in this category.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Cart -->
+            <div class="col-lg-4">
+                <div class="cart-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0">Your Cart</h3>
+                        <button class="btn btn-sm btn-outline-secondary" id="clear-cart-btn">Clear Cart</button>
+                    </div>
+                    
+                    <div id="cart-items">
+                        <p class="text-center py-3">Your cart is empty</p>
+                    </div>
+                    
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>Total</h5>
+                            <h5 id="cart-total">₹0.00</h5>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100" id="proceed-to-checkout-btn" disabled>Proceed to Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Checkout Section (Hidden initially) -->
+<section class="py-5 d-none" id="checkout-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Checkout</h3>
+                        
+                        <form method="POST" action="{{ url_for('place_takeaway_order') }}" id="order-form">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-4">
+                                <h5>Contact Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Full Name</label>
+                                        {{ form.name(class="form-control", placeholder="Enter your full name", value=current_user.username if current_user.is_authenticated else "") }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        {{ form.email(class="form-control", placeholder="Enter your email address", value=current_user.email if current_user.is_authenticated else "") }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        {{ form.phone(class="form-control", placeholder="Enter your phone number", value=current_user.phone if current_user.is_authenticated else "") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5>Order Type</h5>
+                                <div class="mb-3">
+                                    <div class="form-check form-check-inline">
+                                        {{ form.order_type(class="form-check-input", id="order_type_takeaway", value="takeaway", checked=true) }}
+                                        <label class="form-check-label" for="order_type_takeaway">Takeaway (Pick-up)</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        {{ form.order_type(class="form-check-input", id="order_type_delivery", value="delivery") }}
+                                        <label class="form-check-label" for="order_type_delivery">Delivery</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 d-none" id="address-select-container">
+                                    <label for="address_id" class="form-label">Select Delivery Address</label>
+                                    <div class="row mb-2">
+                                        <div class="col-md-9">
+                                            {{ form.address_id(class="form-select") }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a href="{{ url_for('add_address') }}" class="btn btn-outline-secondary w-100">Add New</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="special_instructions" class="form-label">Special Instructions</label>
+                                {{ form.special_instructions(class="form-control", rows=3, placeholder="Any special requests for your order?") }}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5>Payment Method</h5>
+                                <div class="mb-3">
+                                    <div class="form-check mb-2">
+                                        {{ form.payment_method(class="form-check-input", id="payment_pickup", value="pickup", checked=true) }}
+                                        <label class="form-check-label" for="payment_pickup">
+                                            <i class="fas fa-store me-2"></i> Pay on Pickup
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        {{ form.payment_method(class="form-check-input", id="payment_cod", value="cash-on-delivery") }}
+                                        <label class="form-check-label" for="payment_cod">
+                                            <i class="fas fa-money-bill-wave me-2"></i> Cash on Delivery
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        {{ form.payment_method(class="form-check-input", id="payment_upi", value="upi") }}
+                                        <label class="form-check-label" for="payment_upi">
+                                            <i class="fas fa-mobile-alt me-2"></i> UPI Payment
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="card border d-none" id="upi-payment-section">
+                                    <div class="card-body text-center">
+                                        <h6 class="mb-3">Scan QR Code to Pay</h6>
+                                        <div class="mb-3 d-inline-block bg-white p-3 border rounded">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="150" height="150">
+                                                <rect x="0" y="0" width="200" height="200" fill="#fff"></rect>
+                                                <path d="M30,30 L30,50 L50,50 L50,30 Z M60,30 L60,50 L80,50 L80,30 Z M90,30 L90,50 L110,50 L110,30 Z M120,30 L120,50 L140,50 L140,30 Z M150,30 L150,50 L170,50 L170,30 Z M30,60 L30,80 L50,80 L50,60 Z M150,60 L150,80 L170,80 L170,60 Z M30,90 L30,110 L50,110 L50,90 Z M60,90 L60,110 L80,110 L80,90 Z M90,90 L90,110 L110,110 L110,90 Z M120,90 L120,110 L140,110 L140,90 Z M150,90 L150,110 L170,110 L170,90 Z M30,120 L30,140 L50,140 L50,120 Z M150,120 L150,140 L170,140 L170,120 Z M30,150 L30,170 L50,170 L50,150 Z M60,150 L60,170 L80,170 L80,150 Z M90,150 L90,170 L110,170 L110,150 Z M120,150 L120,170 L140,170 L140,150 Z M150,150 L150,170 L170,170 L170,150 Z" fill="#000"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="mb-4">UPI ID: payments@dillysveg</p>
+                                        <button type="button" class="btn btn-success" id="upi-confirm-btn">
+                                            <i class="fas fa-check me-2"></i> I've Made the Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" name="payment_status" id="payment_status" value="pending">
+                            
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary btn-lg", id="place-order-btn") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4">Order Summary</h4>
+                        
+                        <div id="checkout-items">
+                            <p class="text-center">Loading...</p>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span id="checkout-subtotal">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Taxes (5%)</span>
+                            <span id="checkout-taxes">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Delivery Fee</span>
+                            <span id="checkout-delivery">₹0.00</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total</span>
+                            <span id="checkout-total" class="text-primary">₹0.00</span>
+                        </div>
+                        
+                        <button class="btn btn-outline-secondary w-100 mt-4" id="back-to-menu-btn">
+                            <i class="fas fa-arrow-left me-2"></i> Back to Menu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cart Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="cart-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Shopping Cart</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="cart-toast-body">
+            Item added to cart!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+<script src="{{ url_for('static', filename='js/order.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter by category
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        const menuItems = document.querySelectorAll('.menu-item');
+        const menuCategories = document.querySelectorAll('.menu-category');
+        
+        // Filter items by category
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.getAttribute('data-category');
+                
+                // Toggle active class
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                if (category === 'all') {
+                    // Show all categories
+                    menuCategories.forEach(cat => cat.style.display = 'block');
+                } else {
+                    // Show only selected category
+                    menuCategories.forEach(cat => {
+                        if (cat.id === `category-${category}`) {
+                            cat.style.display = 'block';
+                        } else {
+                            cat.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // Apply current dietary filters
+                applyFilters();
+            });
+        });
+        
+        // Dietary preference filters
+        const filterTags = document.querySelectorAll('.filter-tag');
+        let activeFilters = {
+            vegan: false,
+            'gluten-free': false,
+            jain: false
+        };
+        
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                this.classList.toggle('active');
+                activeFilters[filter] = !activeFilters[filter];
+                
+                applyFilters();
+            });
+        });
+        
+        function applyFilters() {
+            const selectedCategory = document.querySelector('.category-btn.active').getAttribute('data-category');
+            
+            menuItems.forEach(item => {
+                // First check if item should be shown based on category
+                let showItem = true;
+                
+                if (selectedCategory !== 'all' && item.getAttribute('data-category') !== selectedCategory) {
+                    showItem = false;
+                }
+                
+                // Then check dietary filters
+                if (showItem) {
+                    if (activeFilters.vegan && item.getAttribute('data-vegan') !== 'true') {
+                        showItem = false;
+                    }
+                    
+                    if (activeFilters['gluten-free'] && item.getAttribute('data-gluten-free') !== 'true') {
+                        showItem = false;
+                    }
+                    
+                    if (activeFilters.jain && item.getAttribute('data-jain') !== 'true') {
+                        showItem = false;
+                    }
+                }
+                
+                // Show or hide item
+                item.style.display = showItem ? 'block' : 'none';
+            });
+        }
+        
+        // Proceed to checkout
+        const proceedToCheckoutBtn = document.getElementById('proceed-to-checkout-btn');
+        const menuSection = document.getElementById('menu-section');
+        const checkoutSection = document.getElementById('checkout-section');
+        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        
+        if (proceedToCheckoutBtn && menuSection && checkoutSection && backToMenuBtn) {
+            proceedToCheckoutBtn.addEventListener('click', function() {
+                // Update step indicator
+                document.getElementById('step-1').classList.remove('active');
+                document.getElementById('step-1').classList.add('completed');
+                document.getElementById('step-2').classList.add('active');
+                
+                // Update checkout summary
+                updateCheckoutSummary();
+                
+                // Hide menu section, show checkout section
+                menuSection.classList.add('d-none');
+                checkoutSection.classList.remove('d-none');
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            });
+            
+            backToMenuBtn.addEventListener('click', function() {
+                // Update step indicator
+                document.getElementById('step-2').classList.remove('active');
+                document.getElementById('step-1').classList.remove('completed');
+                document.getElementById('step-1').classList.add('active');
+                
+                // Hide checkout section, show menu section
+                checkoutSection.classList.add('d-none');
+                menuSection.classList.remove('d-none');
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            });
+        }
+        
+        // Update checkout summary
+        function updateCheckoutSummary() {
+            const checkoutItems = document.getElementById('checkout-items');
+            const checkoutSubtotal = document.getElementById('checkout-subtotal');
+            const checkoutTaxes = document.getElementById('checkout-taxes');
+            const checkoutDelivery = document.getElementById('checkout-delivery');
+            const checkoutTotal = document.getElementById('checkout-total');
+            
+            // Get cart from session
+            fetch('/api/cart')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const cart = data.cart;
+                        
+                        // Update items
+                        checkoutItems.innerHTML = '';
+                        
+                        if (cart.length === 0) {
+                            checkoutItems.innerHTML = '<p class="text-center">Your cart is empty</p>';
+                        } else {
+                            let subtotal = 0;
+                            
+                            cart.forEach(item => {
+                                const itemTotal = item.price * item.quantity;
+                                subtotal += itemTotal;
+                                
+                                const itemHtml = `
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <p class="mb-0 fw-medium">${item.name}</p>
+                                        <p class="mb-0 text-muted">₹${item.price.toFixed(2)} × ${item.quantity}</p>
+                                    </div>
+                                    <p class="mb-0">₹${itemTotal.toFixed(2)}</p>
+                                </div>`;
+                                
+                                checkoutItems.innerHTML += itemHtml;
+                            });
+                            
+                            // Calculate taxes and total
+                            const taxes = subtotal * 0.05;
+                            const deliveryFee = document.getElementById('order_type_delivery').checked ? 40 : 0;
+                            const total = subtotal + taxes + deliveryFee;
+                            
+                            // Update summary
+                            checkoutSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+                            checkoutTaxes.textContent = `₹${taxes.toFixed(2)}`;
+                            checkoutDelivery.textContent = deliveryFee > 0 ? `₹${deliveryFee.toFixed(2)}` : 'Free';
+                            checkoutTotal.textContent = `₹${total.toFixed(2)}`;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading cart:', error);
+                    checkoutItems.innerHTML = '<p class="text-center text-danger">Error loading cart</p>';
+                });
+        }
+        
+        // Toggle delivery address when order type changes
+        const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
+        const addressSelectContainer = document.getElementById('address-select-container');
+        const checkoutDelivery = document.getElementById('checkout-delivery');
+        
+        if (orderTypeRadios.length > 0 && addressSelectContainer) {
+            orderTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'delivery') {
+                        addressSelectContainer.classList.remove('d-none');
+                        
+                        // Update delivery fee
+                        if (checkoutDelivery) {
+                            checkoutDelivery.textContent = '₹40.00';
+                            updateCheckoutTotal();
+                        }
+                    } else {
+                        addressSelectContainer.classList.add('d-none');
+                        
+                        // Update delivery fee
+                        if (checkoutDelivery) {
+                            checkoutDelivery.textContent = 'Free';
+                            updateCheckoutTotal();
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Update checkout total when delivery fee changes
+        function updateCheckoutTotal() {
+            const checkoutSubtotal = document.getElementById('checkout-subtotal');
+            const checkoutTaxes = document.getElementById('checkout-taxes');
+            const checkoutDelivery = document.getElementById('checkout-delivery');
+            const checkoutTotal = document.getElementById('checkout-total');
+            
+            if (checkoutSubtotal && checkoutTaxes && checkoutDelivery && checkoutTotal) {
+                const subtotal = parseFloat(checkoutSubtotal.textContent.replace('₹', ''));
+                const taxes = parseFloat(checkoutTaxes.textContent.replace('₹', ''));
+                const deliveryFee = checkoutDelivery.textContent === 'Free' ? 0 : parseFloat(checkoutDelivery.textContent.replace('₹', ''));
+                
+                const total = subtotal + taxes + deliveryFee;
+                
+                checkoutTotal.textContent = `₹${total.toFixed(2)}`;
+            }
+        }
+        
+        // Place order form submission
+        const orderForm = document.getElementById('order-form');
+        
+        if (orderForm) {
+            orderForm.addEventListener('submit', function(event) {
+                // Update step indicator before submitting
+                document.getElementById('step-2').classList.remove('active');
+                document.getElementById('step-2').classList.add('completed');
+                document.getElementById('step-3').classList.add('active');
+            });
+        }
+    });
+</script>
+{% endblock %}

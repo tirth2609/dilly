@@ -1,0 +1,352 @@
+{% extends "layout.html" %}
+
+{% block title %}QR Menu - Table {{ table_id }} - Dilly's Veg Kitchen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .menu-filters {
+        position: sticky;
+        top: 90px;
+        z-index: 10;
+        background-color: #fff;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .category-btn {
+        white-space: nowrap;
+        margin-bottom: 5px;
+    }
+    
+    .category-btn.active {
+        background-color: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    
+    .filter-tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .filter-tag {
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-tag.active {
+        color: white;
+    }
+    
+    .filter-tag-vegan.active {
+        background-color: var(--secondary-color);
+    }
+    
+    .filter-tag-gluten-free.active {
+        background-color: #9c27b0;
+    }
+    
+    .filter-tag-jain.active {
+        background-color: #e91e63;
+    }
+    
+    .cart-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 0.7rem;
+    }
+    
+    .cart-container {
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        background-color: #fff;
+        padding: 1.5rem;
+        position: sticky;
+        top: 90px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- QR Menu Header -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">Table <span id="table-id">{{ table_id }}</span> Menu</h1>
+                <p class="lead mb-0">Scan the QR code or browse our menu to place your order directly from your table.</p>
+            </div>
+            <div class="col-md-4 text-center text-md-end">
+                <div id="qr-code-container" class="d-inline-block bg-white p-3 rounded shadow-sm">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading QR Code...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Filters -->
+<section class="menu-filters border-bottom">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="overflow-auto py-2" style="max-width: 100%;">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary category-btn active" data-category="all">All</button>
+                    {% for category in categories %}
+                    <button class="btn btn-outline-primary category-btn" data-category="{{ category.id }}">{{ category.name }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="filter-tag-container py-2">
+                <span class="filter-tag filter-tag-vegan" data-filter="vegan">
+                    <i class="fas fa-leaf"></i> Vegan
+                </span>
+                <span class="filter-tag filter-tag-gluten-free" data-filter="gluten-free">
+                    <i class="fas fa-wheat-alt"></i> Gluten Free
+                </span>
+                <span class="filter-tag filter-tag-jain" data-filter="jain">
+                    <i class="fas fa-seedling"></i> Jain
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Items and Cart -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Menu Items -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div id="menu-items-container">
+                    {% for category in categories %}
+                    <div class="mb-5 menu-category" id="category-{{ category.id }}">
+                        <h3 class="mb-4">{{ category.name }}</h3>
+                        <div class="row">
+                            {% for item in menu_items if item.category_id == category.id %}
+                            <div class="col-md-6 mb-4 menu-item" 
+                                 data-category="{{ item.category_id }}"
+                                 data-vegan="{{ 'true' if item.is_vegan else 'false' }}"
+                                 data-gluten-free="{{ 'true' if item.is_gluten_free else 'false' }}"
+                                 data-jain="{{ 'true' if item.is_jain else 'false' }}">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="row g-0">
+                                        <div class="col-4">
+                                            <img src="{{ item.image_url or 'https://pixabay.com/get/gfb19f96319953cdff51aa1a2886e53f8f661af51da1012f9b0a893d8f50ff35f10acd8d7fb22ad40a1e9f2d07d5733b8f9cb2650f4fed0a01c7d36b1ae9048f4_1280.jpg' }}" 
+                                                 class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ item.name }}">
+                                        </div>
+                                        <div class="col-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ item.name }}</h5>
+                                                <p class="card-text small">{{ item.description }}</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <p class="card-text fw-bold text-primary mb-0">₹{{ "%.2f"|format(item.price) }}</p>
+                                                    <button class="btn btn-sm btn-outline-primary add-to-cart-btn" 
+                                                            data-item-id="{{ item.id }}"
+                                                            data-item-name="{{ item.name }}"
+                                                            data-item-price="{{ item.price }}">Add</button>
+                                                </div>
+                                                <div class="mt-2">
+                                                    {% if item.is_vegan %}
+                                                    <span class="badge bg-success me-1">Vegan</span>
+                                                    {% endif %}
+                                                    {% if item.is_gluten_free %}
+                                                    <span class="badge bg-purple me-1">Gluten Free</span>
+                                                    {% endif %}
+                                                    {% if item.is_jain %}
+                                                    <span class="badge bg-pink me-1">Jain</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-12">
+                                <p>No items available in this category.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Cart -->
+            <div class="col-lg-4">
+                <div class="cart-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0">Your Order</h3>
+                        <span class="badge bg-primary rounded-pill">Table {{ table_id }}</span>
+                    </div>
+                    
+                    <div id="cart-items">
+                        <p class="text-center py-3">Your cart is empty</p>
+                    </div>
+                    
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>Total</h5>
+                            <h5 id="cart-total">₹0.00</h5>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100 mb-2" id="place-order-btn" data-bs-toggle="modal" data-bs-target="#orderModal" disabled>Place Order</button>
+                        <button class="btn btn-outline-secondary w-100" id="clear-cart-btn">Clear Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Order Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Complete Your Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="qr-order-form">
+                    <input type="hidden" name="table_id" value="{{ table_id }}">
+                    
+                    <div class="mb-3">
+                        <label for="customer_name" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="customer_name" name="customer_name" value="{{ current_user.username if current_user.is_authenticated else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="customer_email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="customer_email" name="customer_email" value="{{ current_user.email if current_user.is_authenticated else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="customer_phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="customer_phone" name="customer_phone" value="{{ current_user.phone if current_user.is_authenticated else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="special_instructions" class="form-label">Special Instructions</label>
+                        <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3" placeholder="Any special requests or dietary requirements?"></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small><i class="fas fa-info-circle me-1"></i> Please note that payment will be collected at your table after your meal.</small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Confirm Order</button>
+                    </div>
+                </form>
+                
+                <!-- Success Message (Hidden by default) -->
+                <div id="order-success-message" class="text-center py-4 d-none">
+                    <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
+                    <h4>Order Placed Successfully!</h4>
+                    <p>Your order #<span id="order-id"></span> has been received and is being prepared.</p>
+                    <p>Please pay at the counter after your meal.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/qrcode.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter by category
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        const menuItems = document.querySelectorAll('.menu-item');
+        const menuCategories = document.querySelectorAll('.menu-category');
+        
+        // Filter items by category
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.getAttribute('data-category');
+                
+                // Toggle active class
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                if (category === 'all') {
+                    // Show all categories
+                    menuCategories.forEach(cat => cat.style.display = 'block');
+                } else {
+                    // Show only selected category
+                    menuCategories.forEach(cat => {
+                        if (cat.id === `category-${category}`) {
+                            cat.style.display = 'block';
+                        } else {
+                            cat.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // Apply current dietary filters
+                applyFilters();
+            });
+        });
+        
+        // Dietary preference filters
+        const filterTags = document.querySelectorAll('.filter-tag');
+        let activeFilters = {
+            vegan: false,
+            'gluten-free': false,
+            jain: false
+        };
+        
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                this.classList.toggle('active');
+                activeFilters[filter] = !activeFilters[filter];
+                
+                applyFilters();
+            });
+        });
+        
+        function applyFilters() {
+            const selectedCategory = document.querySelector('.category-btn.active').getAttribute('data-category');
+            
+            menuItems.forEach(item => {
+                // First check if item should be shown based on category
+                let showItem = true;
+                
+                if (selectedCategory !== 'all' && item.getAttribute('data-category') !== selectedCategory) {
+                    showItem = false;
+                }
+                
+                // Then check dietary filters
+                if (showItem) {
+                    if (activeFilters.vegan && item.getAttribute('data-vegan') !== 'true') {
+                        showItem = false;
+                    }
+                    
+                    if (activeFilters['gluten-free'] && item.getAttribute('data-gluten-free') !== 'true') {
+                        showItem = false;
+                    }
+                    
+                    if (activeFilters.jain && item.getAttribute('data-jain') !== 'true') {
+                        showItem = false;
+                    }
+                }
+                
+                // Show or hide item
+                item.style.display = showItem ? 'block' : 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

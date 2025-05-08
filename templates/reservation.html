@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+
+{% block title %}Reservations - Dilly's Veg Kitchen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .time-slot {
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .time-slot:hover {
+        border-color: var(--accent-color);
+    }
+    
+    .time-slot.selected {
+        background-color: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    
+    .time-slot.unavailable {
+        background-color: #f8f9fa;
+        color: #adb5bd;
+        cursor: not-allowed;
+    }
+    
+    .reservation-image {
+        height: 100%;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Reservation Banner -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-4 mb-3">Book a Table</h1>
+                <p class="lead">Reserve your table at Dilly's Veg Kitchen for a memorable dining experience.</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://pixabay.com/get/g360bc9d38405227a148970fdb3644d5e9e8291d31e35527f27ac46545fdd8f6f842bb37d4f0b3fa26b45c0f3cf2dec6844c28e9f01676cba3d8885d1679aec59_1280.jpg" alt="Restaurant Interior" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Reservation Form Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="reservation-form shadow rounded p-4 bg-white">
+                    <h2 class="mb-4">Make a Reservation</h2>
+                    
+                    <form id="reservation-form" method="POST" action="{{ url_for('reservation') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <!-- Personal Information -->
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Full Name *</label>
+                                {{ form.name(class="form-control", placeholder="Enter your full name") }}
+                                <div class="invalid-feedback" id="name-feedback">
+                                    Please provide your name.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email Address *</label>
+                                {{ form.email(class="form-control", placeholder="Enter your email address") }}
+                                <div class="invalid-feedback" id="email-feedback">
+                                    Please provide a valid email address.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number *</label>
+                                {{ form.phone(class="form-control", placeholder="Enter your phone number") }}
+                                <div class="invalid-feedback" id="phone-feedback">
+                                    Please provide a valid phone number.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="guests" class="form-label">Number of Guests *</label>
+                                {{ form.guests(class="form-control", placeholder="Enter number of guests", min="1", max="20") }}
+                                <div class="invalid-feedback" id="guests-feedback">
+                                    Please enter a number between 1 and 20.
+                                </div>
+                            </div>
+                            
+                            <!-- Date and Time Selection -->
+                            <div class="col-md-6 mb-3">
+                                <label for="date" class="form-label">Date *</label>
+                                {{ form.date(class="form-control", placeholder="Select a date") }}
+                                <div class="invalid-feedback" id="date-feedback">
+                                    Please select a valid date.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="time" class="form-label">Time *</label>
+                                {{ form.time(class="form-control") }}
+                                <div class="invalid-feedback" id="time-feedback">
+                                    Please select a time slot.
+                                </div>
+                            </div>
+                            
+                            <!-- Special Requests -->
+                            <div class="col-12 mb-3">
+                                <label for="special_requests" class="form-label">Special Requests</label>
+                                {{ form.special_requests(class="form-control", rows="3", placeholder="Any special requests or dietary requirements?") }}
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="col-12">
+                                {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <!-- Reservation Information -->
+                <div class="card mb-4 border-0 shadow">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Reservation Information</h4>
+                        
+                        <div class="mb-3">
+                            <h5 class="mb-2"><i class="fas fa-clock me-2 text-primary"></i>Operating Hours</h5>
+                            <p class="mb-1">Monday - Friday: 11:30 AM - 11:00 PM</p>
+                            <p class="mb-1">Saturday - Sunday: 11:00 AM - 11:30 PM</p>
+                            <p class="mb-0">Holidays: 12:00 PM - 11:00 PM</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5 class="mb-2"><i class="fas fa-info-circle me-2 text-primary"></i>Reservation Guidelines</h5>
+                            <ul class="ps-3 mb-0">
+                                <li>We hold your table for 15 minutes after the reservation time.</li>
+                                <li>For groups larger than 10, please call us directly.</li>
+                                <li>Reservation cancellations should be made at least 2 hours in advance.</li>
+                                <li>For special events, please check our banquet booking options.</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h5 class="mb-2"><i class="fas fa-phone-alt me-2 text-primary"></i>Need Help?</h5>
+                            <p class="mb-0">Call us at: <strong>+91 9876543210</strong><br>
+                            or email: <strong>reservations@dillysvegkitchen.com</strong></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Restaurant Ambiance Image -->
+                <div class="d-none d-lg-block">
+                    <img src="https://pixabay.com/get/g5a6d87691f4b32deb0758ca01584d77d1590ceb7085a796ad6ff28e8598a6f31b205dd22492aef1273272c3396986e37785d257b9b8102f151a7b96a255c582b_1280.jpg" alt="Restaurant Ambiance" class="img-fluid rounded shadow reservation-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reservation.js') }}"></script>
+{% endblock %}

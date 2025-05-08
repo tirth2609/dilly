@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+
+{% block title %}Track Order - Dilly's Veg Kitchen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-timeline {
+        position: relative;
+        margin-left: 15px;
+    }
+    
+    .order-timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 7px;
+        height: 100%;
+        width: 2px;
+        background-color: #dee2e6;
+    }
+    
+    .timeline-step {
+        position: relative;
+        padding-left: 45px;
+        padding-bottom: 30px;
+    }
+    
+    .timeline-step:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-step::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid #adb5bd;
+        z-index: 1;
+    }
+    
+    .timeline-step.active::before {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+    
+    .timeline-step.completed::before {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+    
+    .timeline-step h5 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-step p {
+        margin-bottom: 0;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Track Order Banner -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-4 mb-3">Track Your Order</h1>
+                <p class="lead">Stay updated with the status of your food order.</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://pixabay.com/get/g1ad38af21482ad90e1150d43e634f5b50fc6948417c011b14923b696dcfd3776eb927637ed48af8a28f425ae70afb7d0b5bc65f1d97cb0996cc5e5828b1761c3_1280.jpg" alt="Chef preparing food" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Track Order Form & Details -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                {% if not order %}
+                <div class="card border-0 shadow mb-5">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4 text-center">Enter Your Order ID</h3>
+                        <form method="POST" action="{{ url_for('track_order') }}" id="track-order-form">
+                            {{ form.hidden_tag() }}
+                            <div class="input-group mb-3">
+                                {{ form.order_id(class="form-control form-control-lg", placeholder="Enter your order ID") }}
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <p>If you've registered with us, you can view all your orders in your <a href="{{ url_for('profile') }}">profile page</a>.</p>
+                </div>
+                {% else %}
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0">Order #{{ order.id }}</h3>
+                            <span class="badge {{ 'bg-success' if order.status == 'completed' else 'bg-warning' if order.status == 'preparing' else 'bg-info' if order.status == 'ready' else 'bg-secondary' }} fs-6">
+                                {{ order.status.capitalize() }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="mb-1"><strong>Name:</strong> {{ order.name }}</p>
+                            <p class="mb-1"><strong>Order Type:</strong> {{ order.order_type.capitalize() }}</p>
+                            <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                            <p class="mb-0">
+                                <strong>Payment:</strong> 
+                                {{ order.payment_method.replace('-', ' ').title() }} 
+                                <span class="badge {{ 'bg-success' if order.payment_status == 'completed' else 'bg-warning' }}">
+                                    {{ order.payment_status.capitalize() }}
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3">Order Items</h5>
+                        <div class="mb-4">
+                            {% for item in order.items %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>
+                                    <span class="fw-medium">{{ item.quantity }}x {{ item.menu_item.name }}</span>
+                                    {% if item.notes %}
+                                    <small class="d-block text-muted">{{ item.notes }}</small>
+                                    {% endif %}
+                                </div>
+                                <span>₹{{ "%.2f"|format(item.price * item.quantity) }}</span>
+                            </div>
+                            {% endfor %}
+                            <div class="d-flex justify-content-between fw-bold mt-3 pt-2 border-top">
+                                <span>Total</span>
+                                <span class="text-primary">₹{{ "%.2f"|format(order.total_amount) }}</span>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3">Order Status</h5>
+                        <div class="order-timeline">
+                            <div class="timeline-step {{ 'completed' if order.status != 'pending' else 'active' if order.status == 'pending' else '' }}">
+                                <h5>Order Received</h5>
+                                <p>We've received your order and are processing it.</p>
+                            </div>
+                            <div class="timeline-step {{ 'completed' if order.status not in ['pending', 'preparing'] else 'active' if order.status == 'preparing' else '' }}">
+                                <h5>Preparing Your Order</h5>
+                                <p>Our chefs are preparing your delicious food.</p>
+                            </div>
+                            <div class="timeline-step {{ 'completed' if order.status not in ['pending', 'preparing', 'ready'] else 'active' if order.status == 'ready' else '' }}">
+                                <h5>Ready for Pickup/Delivery</h5>
+                                <p>
+                                    {% if order.order_type == 'takeaway' %}
+                                    Your order is ready for pickup at our restaurant.
+                                    {% else %}
+                                    Your order is out for delivery and will arrive shortly.
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="timeline-step {{ 'completed' if order.status == 'completed' else '' }}">
+                                <h5>Completed</h5>
+                                <p>Enjoy your meal! Thank you for choosing Dilly's Veg Kitchen.</p>
+                            </div>
+                        </div>
+                        
+                        {% if order.order_type == 'takeaway' and order.status == 'ready' %}
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle me-2"></i> Your order is ready for pickup at our restaurant. Please bring your order ID when you come to collect it.
+                        </div>
+                        {% elif order.order_type == 'delivery' and order.status == 'ready' %}
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle me-2"></i> Your order is out for delivery and will be delivered to your address shortly. Our delivery partner will contact you on your registered phone number.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Other Information -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-question-circle fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="card-title">Need Help?</h4>
+                        <p class="card-text">If you have any questions about your order, please contact our customer support team.</p>
+                        <div class="mt-3">
+                            <p class="mb-1"><i class="fas fa-phone me-2"></i> +91 9876543210</p>
+                            <p class="mb-0"><i class="fas fa-envelope me-2"></i> support@dillysvegkitchen.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-utensils fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="card-title">Place a New Order</h4>
+                        <p class="card-text">Browse our menu and place a new order for pickup or delivery.</p>
+                        <a href="{{ url_for('takeaway') }}" class="btn btn-outline-primary mt-3">Order Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-history fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="card-title">View Order History</h4>
+                        <p class="card-text">Login to your account to view your complete order history.</p>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline-primary mt-3">My Profile</a>
+                        {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary mt-3">Login</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

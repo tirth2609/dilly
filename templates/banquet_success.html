@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block title %}Banquet Booking Request Submitted - Dilly's Veg Kitchen{% endblock %}
+
+{% block content %}
+<!-- Banquet Success Banner -->
+<section class="py-5 bg-light">
+    <div class="container text-center">
+        <div class="py-4">
+            <div class="mb-4">
+                <i class="fas fa-check-circle text-success fa-5x"></i>
+            </div>
+            <h1 class="display-4 mb-3">Booking Request Submitted!</h1>
+            <p class="lead mb-0">Thank you for choosing Dilly's Veg Kitchen for your special event.</p>
+            <p class="lead">Your booking reference ID is: <strong class="text-primary">#{{ booking.id }}</strong></p>
+        </div>
+    </div>
+</section>
+
+<!-- Booking Details -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Booking Details</h3>
+                        
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading">Booking Status: {{ booking.status.capitalize() }}</h5>
+                                    <p class="mb-0">Our team will review your booking request and contact you within 24 hours to confirm the details and discuss menu options. If you have any urgent questions, please call us at +91 9876543210.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Event Information</h5>
+                                <p class="mb-1"><strong>Booking ID:</strong> #{{ booking.id }}</p>
+                                <p class="mb-1"><strong>Event Type:</strong> {{ booking.event_type.capitalize() }}</p>
+                                <p class="mb-1"><strong>Date:</strong> {{ booking.date.strftime('%d %b %Y') }}</p>
+                                <p class="mb-1"><strong>Time:</strong> {{ booking.time.strftime('%I:%M %p') }}</p>
+                                <p class="mb-1"><strong>Number of Guests:</strong> {{ booking.guests }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Contact Information</h5>
+                                <p class="mb-1"><strong>Name:</strong> {{ booking.name }}</p>
+                                <p class="mb-1"><strong>Email:</strong> {{ booking.email }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ booking.phone }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if booking.requirements %}
+                        <div class="mb-4">
+                            <h5 class="mb-3">Special Requirements</h5>
+                            <p class="mb-0">{{ booking.requirements }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">What Happens Next?</h5>
+                                <ol class="mb-0">
+                                    <li class="mb-2">Our banquet coordinator will review your request</li>
+                                    <li class="mb-2">We'll contact you to discuss event details and menu options</li>
+                                    <li class="mb-2">Once details are finalized, we'll send a confirmation email</li>
+                                    <li class="mb-0">A deposit may be required to secure your booking</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between flex-wrap">
+                            <a href="{{ url_for('home') }}" class="btn btn-primary mb-2">
+                                <i class="fas fa-home me-2"></i> Back to Homepage
+                            </a>
+                            <a href="{{ url_for('banquet') }}" class="btn btn-outline-secondary mb-2">
+                                <i class="fas fa-glass-cheers me-2"></i> View Banquet Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banquet Information -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Banquet Facilities</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow">
+                    <img src="https://pixabay.com/get/gc61e5aa8f7fbe4db951fcb7fdee1a25d974d97126d80c85ce12d7d0b43e0d7e056727dff9dba1a56fad3d2c85bacbc147dc7f82dd086750f8ea796d0cdefcc13_1280.jpg" alt="Banquet Hall" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">Elegant Venue</h5>
+                        <p class="card-text">Our banquet hall offers a sophisticated and elegant space for your special events, with customizable layouts to suit your needs.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow">
+                    <img src="https://pixabay.com/get/g9b316f291994680a4388b8dc571bc5803766179d1e68f43c00cbdcf03f7bd915ec744db77c5d26b32874c4a7762d94f5c2bad59cdc638b02143a569db6100f6c_1280.jpg" alt="Vegetarian Food" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">Exquisite Catering</h5>
+                        <p class="card-text">Our chefs prepare delicious and visually appealing vegetarian dishes that will impress your guests and make your event memorable.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow">
+                    <img src="https://pixabay.com/get/g36f8db13d78fc2692f780d1e15d8fc4d39453df56e93b6bfe8081189169010051d8787ecd8dacfc2f46a7cac4d2e707944adce039da32e0404e2d4ad7fa2f63f_1280.jpg" alt="Event Setup" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">Dedicated Service</h5>
+                        <p class="card-text">Our experienced event coordinators will assist you throughout the planning process to ensure your event runs smoothly from start to finish.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
