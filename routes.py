@@ -13,7 +13,7 @@ import os
 from app import db
 from models import User, MenuItem, Category, Reservation, BanquetBooking, Order, OrderItem, Address, Table
 from forms import (
-    RegistrationForm, LoginForm, ReservationForm, BanquetBookingForm, 
+    RegistrationForm, LoginForm, AdminLoginForm, ReservationForm, BanquetBookingForm, 
     AddressForm, OrderForm, TrackOrderForm, TableForm
 )
 from utils import save_image, generate_qr_code_data
@@ -25,7 +25,7 @@ def init_routes(app):
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated or not current_user.is_admin:
                 flash('You do not have permission to access this page.', 'danger')
-                return redirect(url_for('login'))
+                return redirect(url_for('admin_login'))
             return f(*args, **kwargs)
         return decorated_function
     
@@ -1081,12 +1081,37 @@ def init_routes(app):
             return redirect(url_for('login'))
         return render_template('register.html', form=form)
     
+    @app.route('/admin/login', methods=['GET', 'POST'])
+    def admin_login():
+        if current_user.is_authenticated:
+            if current_user.is_admin:
+                return redirect(url_for('admin_dashboard'))
+            else:
+                flash('You do not have admin privileges.', 'danger')
+                return redirect(url_for('home'))
+        
+        form = AdminLoginForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(email=form.email.data).first()
+            if user and user.check_password(form.password.data):
+                if user.is_admin:
+                    login_user(user, remember=form.remember.data)
+                    next_page = request.args.get('next')
+                    flash('You have been logged in as admin successfully!', 'success')
+                    return redirect(next_page) if next_page else redirect(url_for('admin_dashboard'))
+                else:
+                    flash('This account does not have admin privileges.', 'danger')
+            else:
+                flash('Login unsuccessful. Please check your email and password.', 'danger')
+        return render_template('admin_login.html', form=form)
+    
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
             if current_user.is_admin:
                 return redirect(url_for('admin_dashboard'))
             return redirect(url_for('home'))
+        
         form = LoginForm()
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
@@ -1094,8 +1119,11 @@ def init_routes(app):
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 flash('You have been logged in successfully!', 'success')
+                
+                # Redirect admin users to admin dashboard
                 if user.is_admin:
                     return redirect(url_for('admin_dashboard'))
+                    
                 return redirect(next_page) if next_page else redirect(url_for('home'))
             else:
                 flash('Login unsuccessful. Please check your email and password.', 'danger')
