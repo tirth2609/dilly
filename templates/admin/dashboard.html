@@ -1,0 +1,266 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - Dilly's Veg Kitchen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-icon {
+        font-size: 2rem;
+        color: var(--accent-color);
+    }
+    
+    .stats-value {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    
+    .sidebar {
+        height: calc(100vh - 75px);
+        position: sticky;
+        top: 75px;
+    }
+    
+    .dashboard-content {
+        min-height: calc(100vh - 75px);
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: var(--accent-color);
+    }
+    
+    .table-action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 32px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-3 col-xl-2">
+            <div class="sidebar bg-light p-3 rounded">
+                <h5 class="mb-3">Admin Menu</h5>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link active" href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_menu_items') }}">
+                        <i class="fas fa-utensils me-2"></i> Manage Menu
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_categories') }}">
+                        <i class="fas fa-tags me-2"></i> Categories
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_reservations') }}">
+                        <i class="fas fa-calendar-check me-2"></i> Reservations
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_banquets') }}">
+                        <i class="fas fa-glass-cheers me-2"></i> Banquet Bookings
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_orders') }}">
+                        <i class="fas fa-shopping-cart me-2"></i> Orders
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_users') }}">
+                        <i class="fas fa-users me-2"></i> Users
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_settings') }}">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9 col-xl-10">
+            <div class="dashboard-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Admin Dashboard</h3>
+                    <span class="text-muted">Welcome, {{ current_user.username }}</span>
+                </div>
+                
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-sm-6 col-md-3 mb-3">
+                        <div class="stats-card p-3 text-center">
+                            <div class="stats-icon mb-2">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stats-value">{{ user_count }}</div>
+                            <div class="stats-label">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 mb-3">
+                        <div class="stats-card p-3 text-center">
+                            <div class="stats-icon mb-2">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stats-value">{{ reservation_count }}</div>
+                            <div class="stats-label">Reservations</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 mb-3">
+                        <div class="stats-card p-3 text-center">
+                            <div class="stats-icon mb-2">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stats-value">{{ order_count }}</div>
+                            <div class="stats-label">Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 mb-3">
+                        <div class="stats-card p-3 text-center">
+                            <div class="stats-icon mb-2">
+                                <i class="fas fa-inr"></i>
+                            </div>
+                            <div class="stats-value">₹{{ revenue }}</div>
+                            <div class="stats-label">Revenue</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Orders</h5>
+                            <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date/Time</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>{{ order.name }}</td>
+                                        <td><span class="badge bg-secondary">{{ order.order_type }}</span></td>
+                                        <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">{{ order.status }}</span>
+                                            {% elif order.status == 'preparing' %}
+                                                <span class="badge bg-primary">{{ order.status }}</span>
+                                            {% elif order.status == 'ready' %}
+                                                <span class="badge bg-info">{{ order.status }}</span>
+                                            {% elif order.status == 'completed' %}
+                                                <span class="badge bg-success">{{ order.status }}</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">{{ order.status }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ order.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ order.created_at.strftime('%d %b, %H:%M') }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-sm btn-primary table-action-btn">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('admin_order_edit', order_id=order.id) }}" class="btn btn-sm btn-info table-action-btn">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">No recent orders found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Reservations -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Upcoming Reservations</h5>
+                            <a href="{{ url_for('admin_reservations') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Guests</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in upcoming_reservations %}
+                                    <tr>
+                                        <td>#{{ reservation.id }}</td>
+                                        <td>{{ reservation.name }}</td>
+                                        <td>{{ reservation.date.strftime('%d %b %Y') }}</td>
+                                        <td>{{ reservation.time.strftime('%I:%M %p') }}</td>
+                                        <td>{{ reservation.guests }}</td>
+                                        <td>
+                                            {% if reservation.status == 'confirmed' %}
+                                                <span class="badge bg-success">{{ reservation.status }}</span>
+                                            {% elif reservation.status == 'cancelled' %}
+                                                <span class="badge bg-danger">{{ reservation.status }}</span>
+                                            {% elif reservation.status == 'completed' %}
+                                                <span class="badge bg-info">{{ reservation.status }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ reservation.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{{ url_for('admin_reservation_detail', reservation_id=reservation.id) }}" class="btn btn-sm btn-primary table-action-btn">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('admin_reservation_edit', reservation_id=reservation.id) }}" class="btn btn-sm btn-info table-action-btn">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">No upcoming reservations found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

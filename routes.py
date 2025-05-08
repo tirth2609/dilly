@@ -3,6 +3,7 @@ from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 from datetime import datetime, time, timedelta
+from functools import wraps
 import json
 import qrcode
 import base64
@@ -17,6 +18,121 @@ from forms import (
 from utils import save_image, generate_qr_code_data
 
 def init_routes(app):
+    # Admin required decorator
+    def admin_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated or not current_user.is_admin:
+                flash('You do not have permission to access this page.', 'danger')
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    
+    # Admin Routes
+    @app.route('/admin/dashboard')
+    @login_required
+    @admin_required
+    def admin_dashboard():
+        # Get statistics for dashboard
+        user_count = User.query.count()
+        reservation_count = Reservation.query.count()
+        order_count = Order.query.count()
+        revenue = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
+        
+        # Recent orders
+        recent_orders = Order.query.order_by(Order.created_at.desc()).limit(5).all()
+        
+        # Upcoming reservations
+        upcoming_reservations = Reservation.query.filter(
+            Reservation.date >= datetime.now().date()
+        ).order_by(Reservation.date.asc(), Reservation.time.asc()).limit(5).all()
+        
+        return render_template('admin/dashboard.html', 
+                              user_count=user_count,
+                              reservation_count=reservation_count,
+                              order_count=order_count,
+                              revenue=f"{revenue:.2f}",
+                              recent_orders=recent_orders,
+                              upcoming_reservations=upcoming_reservations)
+    
+    # Placeholder routes for admin sections - to be implemented
+    @app.route('/admin/menu-items')
+    @login_required
+    @admin_required
+    def admin_menu_items():
+        flash('Menu management functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/categories')
+    @login_required
+    @admin_required
+    def admin_categories():
+        flash('Category management functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/reservations')
+    @login_required
+    @admin_required
+    def admin_reservations():
+        flash('Reservation management functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/banquets')
+    @login_required
+    @admin_required
+    def admin_banquets():
+        flash('Banquet booking management functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/orders')
+    @login_required
+    @admin_required
+    def admin_orders():
+        flash('Order management functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/users')
+    @login_required
+    @admin_required
+    def admin_users():
+        flash('User management functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/settings')
+    @login_required
+    @admin_required
+    def admin_settings():
+        flash('Settings functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    # Placeholder routes for detail and edit pages
+    @app.route('/admin/order/<int:order_id>')
+    @login_required
+    @admin_required
+    def admin_order_detail(order_id):
+        flash('Order detail functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/order/edit/<int:order_id>')
+    @login_required
+    @admin_required
+    def admin_order_edit(order_id):
+        flash('Order edit functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/reservation/<int:reservation_id>')
+    @login_required
+    @admin_required
+    def admin_reservation_detail(reservation_id):
+        flash('Reservation detail functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/reservation/edit/<int:reservation_id>')
+    @login_required
+    @admin_required
+    def admin_reservation_edit(reservation_id):
+        flash('Reservation edit functionality will be implemented soon.', 'info')
+        return redirect(url_for('admin_dashboard'))
     
     @app.route('/')
     @app.route('/home')
@@ -109,6 +225,8 @@ def init_routes(app):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
+            if current_user.is_admin:
+                return redirect(url_for('admin_dashboard'))
             return redirect(url_for('home'))
         form = LoginForm()
         if form.validate_on_submit():
@@ -117,6 +235,8 @@ def init_routes(app):
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 flash('You have been logged in successfully!', 'success')
+                if user.is_admin:
+                    return redirect(url_for('admin_dashboard'))
                 return redirect(next_page) if next_page else redirect(url_for('home'))
             else:
                 flash('Login unsuccessful. Please check your email and password.', 'danger')
