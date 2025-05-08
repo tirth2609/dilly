@@ -1246,16 +1246,16 @@ def init_routes(app):
                 return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
             total_amount += menu_item.price * item['quantity']
             
-        # Create order
+        # Create order - using QR code for dine-in orders
         order = Order(
             name=data.get('name', 'Table Customer'),
             email=data.get('email', 'table@example.com'),
             phone=data.get('phone', '0000000000'),
-            order_type='dine-in',
+            order_type='dine-in',  # Still dine-in for table orders
             table_number=int(table_id),
             special_instructions=data.get('special_instructions', ''),
             total_amount=total_amount,
-            payment_method='counter',
+            payment_method='counter',  # Will pay at counter after meal
             payment_status='pending',
             status='pending',
             user_id=current_user.id if current_user.is_authenticated else None
@@ -1617,18 +1617,8 @@ def init_routes(app):
                     'total': float(item.price * item.quantity)
                 })
         
-        # Get delivery address if applicable
+        # No delivery address needed - takeaway or dine-in only
         address = None
-        if order.address_id:
-            addr = Address.query.get(order.address_id)
-            if addr:
-                address = {
-                    'address_line1': addr.address_line1,
-                    'address_line2': addr.address_line2,
-                    'city': addr.city,
-                    'state': addr.state,
-                    'postal_code': addr.postal_code
-                }
         
         return jsonify({
             'success': True,
