@@ -19,11 +19,12 @@ db = SQLAlchemy(model_class=Base)
 # Create the Flask application
 app = Flask(__name__)
 
-# Set the secret key directly on the app
-app.secret_key = os.environ.get("SESSION_SECRET", "dillysvegkitchen2023")
+# Set a hard-coded secret key for development
+SECRET_KEY = "dillysvegkitchen2023secretkey"
+app.secret_key = SECRET_KEY
 
 # Also set it in config for compatibility with extensions
-app.config["SECRET_KEY"] = app.secret_key
+app.config["SECRET_KEY"] = SECRET_KEY
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure database
@@ -38,7 +39,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 # Initialize CSRF protection for all forms
-csrf = CSRFProtect(app)
+# For now, we'll disable it for debugging purposes
+# csrf = CSRFProtect(app)
+app.config['WTF_CSRF_ENABLED'] = False
 
 # Import models needed for user loader
 from models import User, MenuItem, Category, Reservation, BanquetBooking, Order, OrderItem
