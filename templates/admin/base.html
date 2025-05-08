@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        height: calc(100vh - 75px);
+        position: sticky;
+        top: 75px;
+    }
+    
+    .dashboard-content {
+        min-height: calc(100vh - 75px);
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: var(--accent-color);
+    }
+</style>
+{% block admin_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-3 col-xl-2">
+            <div class="sidebar bg-light p-3 rounded">
+                <h5 class="mb-3">Admin Menu</h5>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link {% if request.path == url_for('admin_dashboard') %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_menu_items') %}active{% endif %}" href="{{ url_for('admin_menu_items') }}">
+                        <i class="fas fa-utensils me-2"></i> Manage Menu
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_categories') %}active{% endif %}" href="{{ url_for('admin_categories') }}">
+                        <i class="fas fa-tags me-2"></i> Categories
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_reservations') %}active{% endif %}" href="{{ url_for('admin_reservations') }}">
+                        <i class="fas fa-calendar-check me-2"></i> Reservations
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_banquets') %}active{% endif %}" href="{{ url_for('admin_banquets') }}">
+                        <i class="fas fa-glass-cheers me-2"></i> Banquet Bookings
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_orders') %}active{% endif %}" href="{{ url_for('admin_orders') }}">
+                        <i class="fas fa-shopping-cart me-2"></i> Orders
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_users') %}active{% endif %}" href="{{ url_for('admin_users') }}">
+                        <i class="fas fa-users me-2"></i> Users
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_tables') %}active{% endif %}" href="{{ url_for('admin_tables') }}">
+                        <i class="fas fa-chair me-2"></i> Tables
+                    </a>
+                    <a class="nav-link {% if request.path == url_for('admin_settings') %}active{% endif %}" href="{{ url_for('admin_settings') }}">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9 col-xl-10">
+            <div class="dashboard-content">
+                {% block admin_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% block admin_scripts %}{% endblock %}
+{% endblock %}
