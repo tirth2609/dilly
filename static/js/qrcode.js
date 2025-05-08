@@ -1,3 +1,8 @@
+// Helper function to format currency
+function formatCurrency(amount) {
+    return '₹' + parseFloat(amount).toFixed(2);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const qrContainer = document.getElementById('qr-code-container');
     const tableIdElement = document.getElementById('table-id');
@@ -37,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize cart
     let cart = [];
     
-    if (menuItems.length > 0) {
-        // Add event listeners to "Add to Cart" buttons
+    // Add event listeners to "Add to Cart" buttons
+    function initializeAddToCartButtons() {
         document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const itemId = this.getAttribute('data-item-id');
@@ -49,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // Initialize buttons
+    initializeAddToCartButtons();
     
     // Function to add item to QR cart
     function addToQrCart(id, name, price, quantity = 1) {
