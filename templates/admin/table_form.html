@@ -1,0 +1,148 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                    <h6>{{ title }}</h6>
+                    <a href="{{ url_for('admin_tables') }}" class="btn btn-secondary btn-sm mb-0">Back to Tables</a>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.table_number.label(class="form-control-label") }}
+                                    {% if form.table_number.errors %}
+                                        {{ form.table_number(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.table_number.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.table_number(class="form-control") }}
+                                    {% endif %}
+                                    <small class="form-text text-muted">Table identifier visible to staff and customers (e.g. T1, A4, etc.)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.capacity.label(class="form-control-label") }}
+                                    {% if form.capacity.errors %}
+                                        {{ form.capacity(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.capacity.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.capacity(class="form-control") }}
+                                    {% endif %}
+                                    <small class="form-text text-muted">Maximum number of guests that can be seated at this table</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.status.label(class="form-control-label") }}
+                                    {% if form.status.errors %}
+                                        {{ form.status(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.status.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.status(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-4">
+                                    {{ form.qr_code_active(class="form-check-input") }}
+                                    {{ form.qr_code_active.label(class="form-check-label") }}
+                                    <div class="form-text text-muted">Enable to allow QR code generation for this table</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    {{ form.description.label(class="form-control-label") }}
+                                    {% if form.description.errors %}
+                                        {{ form.description(class="form-control is-invalid", rows=3) }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.description.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.description(class="form-control", rows=3) }}
+                                    {% endif %}
+                                    <small class="form-text text-muted">Optional notes about the table location or special features</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.position_x.label(class="form-control-label") }}
+                                    {% if form.position_x.errors %}
+                                        {{ form.position_x(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.position_x.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.position_x(class="form-control") }}
+                                    {% endif %}
+                                    <small class="form-text text-muted">X coordinate for visual layout (optional)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.position_y.label(class="form-control-label") }}
+                                    {% if form.position_y.errors %}
+                                        {{ form.position_y(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.position_y.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.position_y(class="form-control") }}
+                                    {% endif %}
+                                    <small class="form-text text-muted">Y coordinate for visual layout (optional)</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                {{ form.submit(class="btn btn-primary") }}
+                                <a href="{{ url_for('admin_tables') }}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

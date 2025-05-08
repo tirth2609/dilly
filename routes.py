@@ -1,5 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request, jsonify, session, abort
 from flask_login import login_user, current_user, logout_user, login_required
+from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 from datetime import datetime, time, timedelta
@@ -10,10 +11,10 @@ import base64
 import io
 import os
 from app import db
-from models import User, MenuItem, Category, Reservation, BanquetBooking, Order, OrderItem, Address
+from models import User, MenuItem, Category, Reservation, BanquetBooking, Order, OrderItem, Address, Table
 from forms import (
     RegistrationForm, LoginForm, ReservationForm, BanquetBookingForm, 
-    AddressForm, OrderForm, TrackOrderForm
+    AddressForm, OrderForm, TrackOrderForm, TableForm
 )
 from utils import save_image, generate_qr_code_data
 
@@ -666,6 +667,245 @@ def init_routes(app):
     def admin_update_notification_settings():
         flash('Notification settings updated successfully.', 'success')
         return redirect(url_for('admin_settings'))
+        
+    # Table Management Routes
+    @app.route('/admin/tables')
+    @login_required
+    @admin_required
+    def admin_tables():
+        # Get filter parameters from query string
+        status_filter = request.args.get('status', 'All')
+        capacity_filter = request.args.get('capacity', 'All')
+        
+        # Base query
+        query = Table.query
+        
+        # Apply filters
+        if status_filter != 'All':
+            query = query.filter_by(status=status_filter)
+            
+        if capacity_filter != 'All':
+            if capacity_filter == '2':
+                query = query.filter(Table.capacity == 2)
+            elif capacity_filter == '4':
+                query = query.filter(Table.capacity == 4)
+            elif capacity_filter == '6+':
+                query = query.filter(Table.capacity >= 6)
+        
+        # Get sort parameter
+        sort_by = request.args.get('sort', 'table_number')
+        
+        # Apply sorting
+        if sort_by == 'capacity':
+            query = query.order_by(Table.capacity)
+        elif sort_by == 'status':
+            query = query.order_by(Table.status)
+        else:
+            query = query.order_by(Table.table_number)
+        
+        # Pagination
+        page = request.args.get('page', 1, type=int)
+        tables = query.paginate(page=page, per_page=10)
+        
+        return render_template('admin/tables.html', 
+                               tables=tables, 
+                               status_filter=status_filter,
+                               capacity_filter=capacity_filter,
+                               sort_by=sort_by,
+                               datetime=datetime)
+    
+    @app.route('/admin/tables/add', methods=['GET', 'POST'])
+    @login_required
+    @admin_required
+    def admin_add_table():
+        form = TableForm()
+        
+        if form.validate_on_submit():
+            # Check if table number already exists
+            existing_table = Table.query.filter_by(table_number=form.table_number.data).first()
+            if existing_table:
+                flash(f'Table number {form.table_number.data} already exists.', 'danger')
+                return redirect(url_for('admin_add_table'))
+            
+            # Create new table
+            table = Table(
+                table_number=form.table_number.data,
+                capacity=form.capacity.data,
+                status=form.status.data,
+                description=form.description.data,
+                qr_code_active=form.qr_code_active.data,
+                position_x=form.position_x.data,
+                position_y=form.position_y.data
+            )
+            
+            db.session.add(table)
+            db.session.commit()
+            
+            flash(f'Table {form.table_number.data} has been added successfully.', 'success')
+            return redirect(url_for('admin_tables'))
+            
+        return render_template('admin/table_form.html', 
+                               form=form, 
+                               title='Add New Table',
+                               datetime=datetime)
+    
+    @app.route('/admin/tables/edit/<int:table_id>', methods=['GET', 'POST'])
+    @login_required
+    @admin_required
+    def admin_edit_table(table_id):
+        table = Table.query.get_or_404(table_id)
+        form = TableForm()
+        
+        if form.validate_on_submit():
+            # Check if table number already exists (excluding this table)
+            if form.table_number.data != table.table_number:
+                existing_table = Table.query.filter_by(table_number=form.table_number.data).first()
+                if existing_table:
+                    flash(f'Table number {form.table_number.data} already exists.', 'danger')
+                    return redirect(url_for('admin_edit_table', table_id=table_id))
+            
+            # Update table
+            table.table_number = form.table_number.data
+            table.capacity = form.capacity.data
+            table.status = form.status.data
+            table.description = form.description.data
+            table.qr_code_active = form.qr_code_active.data
+            table.position_x = form.position_x.data
+            table.position_y = form.position_y.data
+            
+            db.session.commit()
+            
+            flash(f'Table {form.table_number.data} has been updated successfully.', 'success')
+            return redirect(url_for('admin_tables'))
+            
+        elif request.method == 'GET':
+            # Pre-populate form
+            form.table_number.data = table.table_number
+            form.capacity.data = table.capacity
+            form.status.data = table.status
+            form.description.data = table.description
+            form.qr_code_active.data = table.qr_code_active
+            form.position_x.data = table.position_x
+            form.position_y.data = table.position_y
+            
+        return render_template('admin/table_form.html', 
+                               form=form, 
+                               title='Edit Table',
+                               datetime=datetime)
+    
+    @app.route('/admin/tables/delete/<int:table_id>', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_delete_table(table_id):
+        table = Table.query.get_or_404(table_id)
+        
+        # Store table number for flash message
+        table_number = table.table_number
+        
+        db.session.delete(table)
+        db.session.commit()
+        
+        flash(f'Table {table_number} has been deleted successfully.', 'success')
+        return redirect(url_for('admin_tables'))
+    
+    @app.route('/admin/tables/qr/<int:table_id>')
+    @login_required
+    @admin_required
+    def admin_table_qr(table_id):
+        table = Table.query.get_or_404(table_id)
+        
+        # Generate QR code data
+        base_url = request.host_url.rstrip('/')
+        qr_url = f'{base_url}/qr-menu?table={table.table_number}'
+        qr_code = generate_qr_code_data(qr_url)
+        
+        return render_template('admin/table_qr.html', 
+                               table=table,
+                               qr_code=qr_code,
+                               qr_url=qr_url,
+                               datetime=datetime)
+    
+    @app.route('/admin/tables/qr/generate-all', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_generate_all_qr():
+        # Get all active tables
+        tables = Table.query.filter_by(qr_code_active=True).all()
+        
+        # Generate QR codes for each table
+        base_url = request.host_url.rstrip('/')
+        qr_codes = []
+        
+        for table in tables:
+            qr_url = f'{base_url}/qr-menu?table={table.table_number}'
+            qr_code = generate_qr_code_data(qr_url)
+            qr_codes.append({
+                'table': table,
+                'qr_code': qr_code,
+                'qr_url': qr_url
+            })
+        
+        return render_template('admin/table_qr_all.html', 
+                               qr_codes=qr_codes,
+                               datetime=datetime)
+    
+    @app.route('/admin/tables/layout')
+    @login_required
+    @admin_required
+    def admin_table_layout():
+        # Get all tables
+        tables = Table.query.all()
+        
+        return render_template('admin/table_layout.html', 
+                               tables=tables,
+                               datetime=datetime)
+    
+    @app.route('/admin/tables/update-status/<int:table_id>', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_update_table_status(table_id):
+        table = Table.query.get_or_404(table_id)
+        
+        # Get new status from form
+        new_status = request.form.get('status')
+        if new_status not in ['Available', 'Occupied', 'Reserved', 'Unavailable']:
+            flash('Invalid table status.', 'danger')
+            return redirect(url_for('admin_tables'))
+        
+        # Update status
+        table.status = new_status
+        db.session.commit()
+        
+        flash(f'Table {table.table_number} status updated to {new_status}.', 'success')
+        return redirect(url_for('admin_tables'))
+    
+    @app.route('/admin/tables/update-layout', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_update_table_layout():
+        # Get layout data from request
+        layout_data = request.json
+        
+        if not layout_data or not isinstance(layout_data, list):
+            return jsonify({'error': 'Invalid layout data.'}), 400
+        
+        # Update table positions
+        for table_data in layout_data:
+            table_id = table_data.get('id')
+            position_x = table_data.get('x')
+            position_y = table_data.get('y')
+            
+            if table_id is None or position_x is None or position_y is None:
+                continue
+                
+            table = Table.query.get(table_id)
+            if table:
+                table.position_x = position_x
+                table.position_y = position_y
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Table layout updated successfully.'})
     
     @app.route('/')
     @app.route('/home')

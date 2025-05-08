@@ -1,0 +1,256 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Table Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                    <h6>Table Management</h6>
+                    <a href="{{ url_for('admin_add_table') }}" class="btn btn-primary btn-sm mb-0">Add New Table</a>
+                </div>
+                
+                <div class="card-body px-0 pt-0 pb-2">
+                    <!-- Filters -->
+                    <div class="px-3 py-3">
+                        <form method="GET" action="{{ url_for('admin_tables') }}" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-control" name="status" onchange="this.form.submit()">
+                                    <option value="All" {% if status_filter == 'All' %}selected{% endif %}>All</option>
+                                    <option value="Available" {% if status_filter == 'Available' %}selected{% endif %}>Available</option>
+                                    <option value="Occupied" {% if status_filter == 'Occupied' %}selected{% endif %}>Occupied</option>
+                                    <option value="Reserved" {% if status_filter == 'Reserved' %}selected{% endif %}>Reserved</option>
+                                    <option value="Unavailable" {% if status_filter == 'Unavailable' %}selected{% endif %}>Unavailable</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Capacity</label>
+                                <select class="form-control" name="capacity" onchange="this.form.submit()">
+                                    <option value="All" {% if capacity_filter == 'All' %}selected{% endif %}>All</option>
+                                    <option value="2" {% if capacity_filter == '2' %}selected{% endif %}>2 Seats</option>
+                                    <option value="4" {% if capacity_filter == '4' %}selected{% endif %}>4 Seats</option>
+                                    <option value="6+" {% if capacity_filter == '6+' %}selected{% endif %}>6+ Seats</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Sort By</label>
+                                <select class="form-control" name="sort" onchange="this.form.submit()">
+                                    <option value="table_number" {% if sort_by == 'table_number' %}selected{% endif %}>Table Number</option>
+                                    <option value="capacity" {% if sort_by == 'capacity' %}selected{% endif %}>Capacity</option>
+                                    <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <a href="{{ url_for('admin_table_layout') }}" class="btn btn-info btn-sm mb-2 me-2">
+                                    <i class="fas fa-th me-2"></i> Table Layout
+                                </a>
+                                <a href="{{ url_for('admin_tables') }}" class="btn btn-secondary btn-sm mb-2">
+                                    <i class="fas fa-sync-alt me-2"></i> Reset Filters
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Table -->
+                    <div class="table-responsive px-3">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Table</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Capacity</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">QR Code</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Description</th>
+                                    <th class="text-secondary opacity-7">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for table in tables.items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">{{ table.table_number }}</h6>
+                                                <p class="text-xs text-secondary mb-0">ID: {{ table.id }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="text-xs font-weight-bold mb-0">{{ table.capacity }} Seats</p>
+                                    </td>
+                                    <td>
+                                        {% if table.status == 'Available' %}
+                                        <span class="badge badge-sm bg-success">Available</span>
+                                        {% elif table.status == 'Occupied' %}
+                                        <span class="badge badge-sm bg-danger">Occupied</span>
+                                        {% elif table.status == 'Reserved' %}
+                                        <span class="badge badge-sm bg-warning">Reserved</span>
+                                        {% else %}
+                                        <span class="badge badge-sm bg-secondary">Unavailable</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if table.qr_code_active %}
+                                        <span class="badge badge-sm bg-info">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-sm bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <p class="text-xs text-secondary mb-0">
+                                            {{ table.description|truncate(30) if table.description else 'No description' }}
+                                        </p>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Status
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <form action="{{ url_for('admin_update_table_status', table_id=table.id) }}" method="post">
+                                                        <input type="hidden" name="status" value="Available">
+                                                        <button type="submit" class="dropdown-item">Available</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ url_for('admin_update_table_status', table_id=table.id) }}" method="post">
+                                                        <input type="hidden" name="status" value="Occupied">
+                                                        <button type="submit" class="dropdown-item">Occupied</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ url_for('admin_update_table_status', table_id=table.id) }}" method="post">
+                                                        <input type="hidden" name="status" value="Reserved">
+                                                        <button type="submit" class="dropdown-item">Reserved</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ url_for('admin_update_table_status', table_id=table.id) }}" method="post">
+                                                        <input type="hidden" name="status" value="Unavailable">
+                                                        <button type="submit" class="dropdown-item">Unavailable</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <a href="{{ url_for('admin_table_qr', table_id=table.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_edit_table', table_id=table.id) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ table.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal{{ table.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ table.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ table.id }}">Confirm Delete</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Are you sure you want to delete Table {{ table.table_number }}? This action cannot be undone.
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form action="{{ url_for('admin_delete_table', table_id=table.id) }}" method="post">
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if tables.items|length == 0 %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-muted mb-0">No tables found. Add your first table to get started.</p>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if tables.pages > 1 %}
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav aria-label="Table pagination">
+                            <ul class="pagination">
+                                {% if tables.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('admin_tables', page=tables.prev_num, status=status_filter, capacity=capacity_filter, sort=sort_by) }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                
+                                {% for page_num in range(1, tables.pages + 1) %}
+                                {% if page_num == tables.page %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('admin_tables', page=page_num, status=status_filter, capacity=capacity_filter, sort=sort_by) }}">{{ page_num }}</a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                {% if tables.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('admin_tables', page=tables.next_num, status=status_filter, capacity=capacity_filter, sort=sort_by) }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- QR Code Generation Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6>QR Code Management</h6>
+                </div>
+                <div class="card-body">
+                    <p>Generate QR codes for your tables to enable digital ordering. Customers can scan the QR code to access the menu and place orders directly.</p>
+                    <form action="{{ url_for('admin_generate_all_qr') }}" method="post">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-qrcode me-2"></i> Generate All QR Codes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
