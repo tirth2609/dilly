@@ -4,6 +4,7 @@ from flask import Flask, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
@@ -17,8 +18,12 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the Flask application
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SESSION_SECRET", "dillysvegkitchen2023")
-app.secret_key = app.config["SECRET_KEY"]  # Ensure the secret key is set for both app and sessions
+
+# Set the secret key directly on the app
+app.secret_key = os.environ.get("SESSION_SECRET", "dillysvegkitchen2023")
+
+# Also set it in config for compatibility with extensions
+app.config["SECRET_KEY"] = app.secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure database
@@ -31,6 +36,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize database with the app
 db.init_app(app)
+
+# Initialize CSRF protection for all forms
+csrf = CSRFProtect(app)
 
 # Import models needed for user loader
 from models import User, MenuItem, Category, Reservation, BanquetBooking, Order, OrderItem

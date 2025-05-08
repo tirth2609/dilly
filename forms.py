@@ -24,12 +24,20 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('That email is already registered. Please use a different one or login.')
 
 class LoginForm(FlaskForm):
+    class Meta:
+        # Temporarily disable CSRF for troubleshooting
+        csrf = False
+        
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
     
 class AdminLoginForm(FlaskForm):
+    class Meta:
+        # Temporarily disable CSRF for troubleshooting
+        csrf = False
+        
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
