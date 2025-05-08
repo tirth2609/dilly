@@ -19,8 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Submit the form
-            this.submit();
+            // Submit the form (bypass the event.preventDefault())
+            banquetForm.removeEventListener('submit', arguments.callee);
+            banquetForm.submit();
         });
         
         // Function to validate banquet form

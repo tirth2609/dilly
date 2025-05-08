@@ -65,8 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Submit the form
-            this.submit();
+            // Submit the form (bypass the event.preventDefault())
+            reservationForm.removeEventListener('submit', arguments.callee);
+            reservationForm.submit();
         });
         
         // Function to validate reservation form
