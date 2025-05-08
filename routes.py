@@ -1600,6 +1600,58 @@ def init_routes(app):
             'table_id': table_id,
             'qr_data': qr_image
         })
+        
+    @app.route('/api/order-details/<int:order_id>', methods=['GET'])
+    def get_order_details(order_id):
+        """Get detailed information about an order and its items"""
+        order = Order.query.get_or_404(order_id)
+        
+        # Get order items
+        order_items = []
+        for item in order.items:
+            menu_item = MenuItem.query.get(item.menu_item_id)
+            if menu_item:
+                order_items.append({
+                    'id': item.id,
+                    'name': menu_item.name,
+                    'price': float(item.price),
+                    'quantity': item.quantity,
+                    'notes': item.notes,
+                    'total': float(item.price * item.quantity)
+                })
+        
+        # Get delivery address if applicable
+        address = None
+        if order.address_id:
+            addr = Address.query.get(order.address_id)
+            if addr:
+                address = {
+                    'address_line1': addr.address_line1,
+                    'address_line2': addr.address_line2,
+                    'city': addr.city,
+                    'state': addr.state,
+                    'postal_code': addr.postal_code
+                }
+        
+        return jsonify({
+            'success': True,
+            'order': {
+                'id': order.id,
+                'name': order.name,
+                'email': order.email,
+                'phone': order.phone,
+                'order_type': order.order_type,
+                'table_number': order.table_number,
+                'special_instructions': order.special_instructions,
+                'status': order.status,
+                'payment_method': order.payment_method,
+                'payment_status': order.payment_status,
+                'total_amount': float(order.total_amount),
+                'created_at': order.created_at.isoformat(),
+                'address': address
+            },
+            'items': order_items
+        })
     
     # Error handlers
     

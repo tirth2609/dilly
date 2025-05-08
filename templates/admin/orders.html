@@ -813,47 +813,53 @@
                     const orderItemsContainer = document.getElementById('view_order_items');
                     orderItemsContainer.innerHTML = '';
                     
-                    // In a real app, these would be the actual order items from the API
-                    const demoItems = [
-                        { name: 'Paneer Tikka', price: 250, quantity: 1 },
-                        { name: 'Veg Biryani', price: 180, quantity: 2 },
-                        { name: 'Garlic Naan', price: 40, quantity: 3 },
-                        { name: 'Raita', price: 60, quantity: 1 }
-                    ];
-                    
-                    let total = 0;
-                    demoItems.forEach(item => {
-                        const itemTotal = item.price * item.quantity;
-                        total += itemTotal;
-                        
-                        const itemHtml = `
-                            <div class="order-item d-flex justify-content-between align-items-center p-3">
-                                <div>
-                                    <div>${item.name}</div>
-                                    <div class="small text-muted">₹${item.price.toFixed(2)} x ${item.quantity}</div>
-                                </div>
-                                <div>₹${itemTotal.toFixed(2)}</div>
-                            </div>
-                        `;
-                        
-                        orderItemsContainer.innerHTML += itemHtml;
-                    });
-                    
-                    document.getElementById('view_items_total').textContent = `₹${total.toFixed(2)}`;
-                    
-                    // Special instructions
-                    const specialInstructionsCard = document.getElementById('view_special_instructions_card');
-                    const specialInstructions = document.getElementById('view_special_instructions');
-                    
-                    // In a real app, this would come from the API
-                    const demoInstructions = 'Please make sure the food is packed well and include extra serviettes.';
-                    
-                    if (demoInstructions) {
-                        specialInstructions.textContent = demoInstructions;
-                        specialInstructionsCard.style.display = 'block';
-                    } else {
-                        specialInstructionsCard.style.display = 'none';
-                    }
+                    // Fetch actual order items from the API
+                    fetch(`/api/order-details/${orderId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const items = data.items;
+                                let total = 0;
+                                
+                                if (items.length === 0) {
+                                    orderItemsContainer.innerHTML = '<div class="text-center py-3">No items in this order</div>';
+                                } else {
+                                    items.forEach(item => {
+                                        total += item.total;
+                                        
+                                        const itemHtml = `
+                                            <div class="order-item d-flex justify-content-between align-items-center p-3">
+                                                <div>
+                                                    <div>${item.name}</div>
+                                                    <div class="small text-muted">₹${item.price.toFixed(2)} x ${item.quantity}</div>
+                                                    ${item.notes ? `<div class="small text-muted fst-italic">${item.notes}</div>` : ''}
+                                                </div>
+                                                <div>₹${item.total.toFixed(2)}</div>
+                                            </div>
+                                        `;
+                                        
+                                        orderItemsContainer.innerHTML += itemHtml;
+                                    });
+                                }
+                                
+            
+                                
+                                // Special instructions
+                                const specialInstructionsCard = document.getElementById('view_special_instructions_card');
+                                const specialInstructions = document.getElementById('view_special_instructions');
+                                
+                                if (data.order.special_instructions) {
+                                    specialInstructions.textContent = data.order.special_instructions;
+                                    specialInstructionsCard.style.display = 'block';
+                                } else {
+                                    specialInstructionsCard.style.display = 'none';
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            orderItemsContainer.innerHTML = '<div class="text-center py-3 text-danger">Error loading order items</div>';
+                            console.error('Error fetching order details:', error);
+                        });
                     
                     // Update button display based on status
                     const markAsPaidBtn = document.querySelector('.mark-as-paid');
@@ -866,8 +872,7 @@
                     // Hide loading and show details
                     document.getElementById('order-details-loading').style.display = 'none';
                     document.getElementById('order-details').style.display = 'block';
-                }, 500);
-            });
+                });
         });
         
         // Update status from view modal
