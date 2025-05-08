@@ -47,11 +47,21 @@ def init_routes(app):
             Reservation.date >= datetime.now().date()
         ).order_by(Reservation.date.asc(), Reservation.time.asc()).limit(5).all()
         
+        # Stats for dashboard
+        stats = {
+            'orders_count': order_count,
+            'users_count': user_count,
+            'reservations_count': reservation_count,
+            'revenue': f"{revenue:.2f}",
+            'orders_growth': 15,  # Example values
+            'users_growth': 8,
+            'reservations_growth': 12,
+            'revenue_growth': 10
+        }
+        
         return render_template('admin/dashboard.html', 
-                              user_count=user_count,
-                              reservation_count=reservation_count,
-                              order_count=order_count,
-                              revenue=f"{revenue:.2f}",
+                              stats=stats,
+                              datetime=datetime,
                               recent_orders=recent_orders,
                               upcoming_reservations=upcoming_reservations)
     
@@ -62,7 +72,7 @@ def init_routes(app):
     def admin_menu_items():
         categories = Category.query.order_by(Category.display_order).all()
         menu_items = MenuItem.query.all()
-        return render_template('admin/menu_items.html', categories=categories, menu_items=menu_items)
+        return render_template('admin/menu_items.html', categories=categories, menu_items=menu_items, datetime=datetime)
     
     @app.route('/admin/menu-items/add', methods=['POST'])
     @login_required
@@ -146,7 +156,7 @@ def init_routes(app):
     @admin_required
     def admin_categories():
         categories = Category.query.order_by(Category.display_order).all()
-        return render_template('admin/categories.html', categories=categories)
+        return render_template('admin/categories.html', categories=categories, datetime=datetime)
     
     @app.route('/admin/categories/add', methods=['POST'])
     @login_required
@@ -209,7 +219,7 @@ def init_routes(app):
     @admin_required
     def admin_reservations():
         reservations = Reservation.query.order_by(Reservation.date.desc(), Reservation.time.desc()).all()
-        return render_template('admin/reservations.html', reservations=reservations)
+        return render_template('admin/reservations.html', reservations=reservations, datetime=datetime)
     
     @app.route('/admin/reservations/add', methods=['POST'])
     @login_required
@@ -281,7 +291,7 @@ def init_routes(app):
     @admin_required
     def admin_banquets():
         banquet_bookings = BanquetBooking.query.order_by(BanquetBooking.date.desc()).all()
-        return render_template('admin/banquets.html', banquet_bookings=banquet_bookings)
+        return render_template('admin/banquets.html', banquet_bookings=banquet_bookings, datetime=datetime)
     
     @app.route('/admin/banquets/add', methods=['POST'])
     @login_required
@@ -389,7 +399,8 @@ def init_routes(app):
                               orders=orders,
                               categories=categories,
                               todays_revenue=f"{todays_revenue:.2f}",
-                              avg_order_value=f"{avg_order_value:.2f}")
+                              avg_order_value=f"{avg_order_value:.2f}",
+                              datetime=datetime)
     
     @app.route('/admin/orders/add', methods=['POST'])
     @login_required
