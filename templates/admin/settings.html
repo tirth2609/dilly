@@ -293,8 +293,8 @@
                             <button type="button" class="btn btn-outline-primary">
                                 <i class="fas fa-sync-alt me-2"></i> Check for Updates
                             </button>
-                            <button type="button" class="btn btn-outline-secondary">
-                                <i class="fas fa-database me-2"></i> Backup Database
+                            <button type="button" class="btn btn-success">
+                                <i class="fas fa-database me-2"></i> Create Backup
                             </button>
                         </div>
                     </div>
@@ -308,246 +308,140 @@
 <div class="modal fade" id="restaurantSettingsModal" tabindex="-1" aria-labelledby="restaurantSettingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ url_for('admin_update_restaurant_settings') }}" method="POST">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="restaurantSettingsModalLabel">Restaurant Settings</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs" id="restaurantSettingsTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="hours-tab" data-bs-toggle="tab" data-bs-target="#hours" type="button" role="tab">Operating Hours</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">Contact Info</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="restaurantSettingsTabContent">
-                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                            <div class="mb-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="restaurantSettingsModalLabel">Restaurant Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="restaurantSettingsForm" action="{{ url_for('admin_update_restaurant_settings') }}" method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Basic Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <label for="restaurant_name" class="form-label">Restaurant Name</label>
-                                <input type="text" class="form-control" id="restaurant_name" name="restaurant_name" value="Dilly's Veg Kitchen" required>
+                                <input type="text" class="form-control" id="restaurant_name" name="restaurant_name" value="Dilly's Vegetarian Kitchen" required>
                             </div>
-                            <div class="mb-3">
+                            <div class="col-md-6">
                                 <label for="restaurant_tagline" class="form-label">Tagline</label>
-                                <input type="text" class="form-control" id="restaurant_tagline" name="restaurant_tagline" value="Delicious Vegetarian Cuisine">
+                                <input type="text" class="form-control" id="restaurant_tagline" name="restaurant_tagline" value="Serving authentic vegetarian delicacies with love">
                             </div>
-                            <div class="mb-3">
-                                <label for="restaurant_description" class="form-label">Description</label>
-                                <textarea class="form-control" id="restaurant_description" name="restaurant_description" rows="3">At Dilly's Veg Kitchen, we believe in serving high-quality vegetarian food that doesn't compromise on taste or presentation. Our chefs carefully craft each dish using fresh, locally-sourced ingredients to create memorable dining experiences.</textarea>
+                            <div class="col-md-6">
+                                <label for="restaurant_phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="restaurant_phone" name="restaurant_phone" value="+91 9876543210" required>
                             </div>
-                            <div class="mb-3">
-                                <label for="cuisine_type" class="form-label">Cuisine Type</label>
-                                <input type="text" class="form-control" id="cuisine_type" name="cuisine_type" value="Vegetarian, Indian, Continental">
-                            </div>
-                            <div class="mb-3">
-                                <label for="establishment_year" class="form-label">Establishment Year</label>
-                                <input type="number" class="form-control" id="establishment_year" name="establishment_year" value="2005">
+                            <div class="col-md-6">
+                                <label for="restaurant_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="restaurant_email" name="restaurant_email" value="info@dillysvegkitchen.com" required>
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="hours" role="tabpanel" aria-labelledby="hours-tab">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Day</label>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Opening Time</label>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Closing Time</label>
-                                </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Address</h6>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="restaurant_address_line1" class="form-label">Address Line 1</label>
+                                <input type="text" class="form-control" id="restaurant_address_line1" name="restaurant_address_line1" value="123 Green Valley" required>
                             </div>
+                            <div class="col-md-12">
+                                <label for="restaurant_address_line2" class="form-label">Address Line 2</label>
+                                <input type="text" class="form-control" id="restaurant_address_line2" name="restaurant_address_line2" value="Near Central Park">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="restaurant_city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="restaurant_city" name="restaurant_city" value="Mumbai" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="restaurant_state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="restaurant_state" name="restaurant_state" value="Maharashtra" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="restaurant_postal_code" class="form-label">Postal Code</label>
+                                <input type="text" class="form-control" id="restaurant_postal_code" name="restaurant_postal_code" value="400001" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Business Hours</h6>
+                        <div class="row g-3">
                             {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="day_{{ day|lower }}" name="day_{{ day|lower }}" checked>
-                                        <label class="form-check-label" for="day_{{ day|lower }}">{{ day }}</label>
+                            <div class="col-md-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="day_{{ day|lower }}" name="day_{{ day|lower }}" checked>
+                                                <label class="form-check-label" for="day_{{ day|lower }}">{{ day }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="open_{{ day|lower }}" class="form-label">Opening Time</label>
+                                                <input type="time" class="form-control" id="open_{{ day|lower }}" name="open_{{ day|lower }}" value="11:30">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="close_{{ day|lower }}" class="form-label">Closing Time</label>
+                                                <input type="time" class="form-control" id="close_{{ day|lower }}" name="close_{{ day|lower }}" value="23:00">
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <input type="time" class="form-control" id="open_{{ day|lower }}" name="open_{{ day|lower }}" value="11:30">
-                                </div>
-                                <div class="col-md-4">
-                                    <input type="time" class="form-control" id="close_{{ day|lower }}" name="close_{{ day|lower }}" value="23:00">
                                 </div>
                             </div>
                             {% endfor %}
-                            <div class="mb-3">
-                                <label for="holiday_hours" class="form-label">Holiday Hours</label>
-                                <input type="text" class="form-control" id="holiday_hours" name="holiday_hours" value="12:00 PM - 11:00 PM">
-                            </div>
                         </div>
-                        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-                            <div class="mb-3">
-                                <label for="address_line1" class="form-label">Address Line 1</label>
-                                <input type="text" class="form-control" id="address_line1" name="address_line1" value="123 Food Street">
-                            </div>
-                            <div class="mb-3">
-                                <label for="address_line2" class="form-label">Address Line 2</label>
-                                <input type="text" class="form-control" id="address_line2" name="address_line2" value="Vegetarian Plaza">
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label for="city" class="form-label">City</label>
-                                    <input type="text" class="form-control" id="city" name="city" value="Bangalore">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="state" class="form-label">State</label>
-                                    <input type="text" class="form-control" id="state" name="state" value="Karnataka">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="postal_code" class="form-label">Postal Code</label>
-                                    <input type="text" class="form-control" id="postal_code" name="postal_code" value="560001">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Social Media</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="social_facebook" class="form-label">Facebook</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fab fa-facebook-f"></i></span>
+                                    <input type="url" class="form-control" id="social_facebook" name="social_facebook" value="https://facebook.com/dillysvegkitchen">
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Phone Number</label>
-                                <input type="text" class="form-control" id="phone" name="phone" value="+91 9876543210">
+                            <div class="col-md-6">
+                                <label for="social_instagram" class="form-label">Instagram</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fab fa-instagram"></i></span>
+                                    <input type="url" class="form-control" id="social_instagram" name="social_instagram" value="https://instagram.com/dillysvegkitchen">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" value="info@dillysvegkitchen.com">
+                            <div class="col-md-6">
+                                <label for="social_twitter" class="form-label">Twitter</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fab fa-twitter"></i></span>
+                                    <input type="url" class="form-control" id="social_twitter" name="social_twitter" value="https://twitter.com/dillysvegkitchen">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="google_maps_link" class="form-label">Google Maps Link</label>
-                                <input type="text" class="form-control" id="google_maps_link" name="google_maps_link" value="https://maps.google.com/?q=Bangalore+Karnataka">
+                            <div class="col-md-6">
+                                <label for="social_youtube" class="form-label">YouTube</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fab fa-youtube"></i></span>
+                                    <input type="url" class="form-control" id="social_youtube" name="social_youtube" value="">
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Website Settings Modal -->
-<div class="modal fade" id="websiteSettingsModal" tabindex="-1" aria-labelledby="websiteSettingsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form action="{{ url_for('admin_update_website_settings') }}" method="POST" enctype="multipart/form-data">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="websiteSettingsModalLabel">Website Configuration</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs" id="websiteSettingsTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance" type="button" role="tab">Appearance</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="seo-tab" data-bs-toggle="tab" data-bs-target="#seo" type="button" role="tab">SEO</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="social-tab" data-bs-toggle="tab" data-bs-target="#social" type="button" role="tab">Social Media</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="websiteSettingsTabContent">
-                        <div class="tab-pane fade show active" id="appearance" role="tabpanel" aria-labelledby="appearance-tab">
-                            <div class="mb-3">
-                                <label for="logo" class="form-label">Logo</label>
-                                <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
-                                <small class="text-muted">Current logo: logo.svg</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="favicon" class="form-label">Favicon</label>
-                                <input type="file" class="form-control" id="favicon" name="favicon" accept="image/*">
-                                <small class="text-muted">Current favicon: favicon.ico</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="primary_color" class="form-label">Primary Color</label>
-                                <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="#8B4513">
-                            </div>
-                            <div class="mb-3">
-                                <label for="secondary_color" class="form-label">Secondary Color</label>
-                                <input type="color" class="form-control form-control-color" id="secondary_color" name="secondary_color" value="#6B8E23">
-                            </div>
-                            <div class="mb-3">
-                                <label for="accent_color" class="form-label">Accent Color</label>
-                                <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="#FF8C00">
-                            </div>
-                            <div class="mb-3">
-                                <label for="font_family" class="form-label">Font Family</label>
-                                <select class="form-select" id="font_family" name="font_family">
-                                    <option value="Poppins" selected>Poppins</option>
-                                    <option value="Roboto">Roboto</option>
-                                    <option value="Open Sans">Open Sans</option>
-                                    <option value="Montserrat">Montserrat</option>
-                                    <option value="Lato">Lato</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="seo" role="tabpanel" aria-labelledby="seo-tab">
-                            <div class="mb-3">
-                                <label for="meta_title" class="form-label">Meta Title</label>
-                                <input type="text" class="form-control" id="meta_title" name="meta_title" value="Dilly's Veg Kitchen - Delicious Vegetarian Cuisine in Bangalore">
-                            </div>
-                            <div class="mb-3">
-                                <label for="meta_description" class="form-label">Meta Description</label>
-                                <textarea class="form-control" id="meta_description" name="meta_description" rows="2">Experience the finest vegetarian dishes at Dilly's Veg Kitchen in Bangalore. Fresh ingredients, authentic flavors, and a warm atmosphere await you.</textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="meta_keywords" class="form-label">Meta Keywords</label>
-                                <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="vegetarian restaurant, veg restaurant bangalore, dilly's veg kitchen, indian vegetarian food">
-                            </div>
-                            <div class="mb-3">
-                                <label for="google_analytics" class="form-label">Google Analytics Tracking ID</label>
-                                <input type="text" class="form-control" id="google_analytics" name="google_analytics" value="UA-XXXXXXXXX-X">
-                            </div>
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="sitemap_enabled" name="sitemap_enabled" checked>
-                                    <label class="form-check-label" for="sitemap_enabled">
-                                        Generate Sitemap
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="robots_txt_enabled" name="robots_txt_enabled" checked>
-                                    <label class="form-check-label" for="robots_txt_enabled">
-                                        Generate robots.txt
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="social" role="tabpanel" aria-labelledby="social-tab">
-                            <div class="mb-3">
-                                <label for="facebook_url" class="form-label">Facebook Page URL</label>
-                                <input type="text" class="form-control" id="facebook_url" name="facebook_url" value="https://facebook.com/dillysvegkitchen">
-                            </div>
-                            <div class="mb-3">
-                                <label for="instagram_url" class="form-label">Instagram Profile URL</label>
-                                <input type="text" class="form-control" id="instagram_url" name="instagram_url" value="https://instagram.com/dillysvegkitchen">
-                            </div>
-                            <div class="mb-3">
-                                <label for="twitter_url" class="form-label">Twitter Profile URL</label>
-                                <input type="text" class="form-control" id="twitter_url" name="twitter_url" value="https://twitter.com/dillysvegkitchen">
-                            </div>
-                            <div class="mb-3">
-                                <label for="youtube_url" class="form-label">YouTube Channel URL</label>
-                                <input type="text" class="form-control" id="youtube_url" name="youtube_url" value="https://youtube.com/dillysvegkitchen">
-                            </div>
-                            <div class="mb-3">
-                                <label for="og_image" class="form-label">Social Media Share Image</label>
-                                <input type="file" class="form-control" id="og_image" name="og_image" accept="image/*">
-                                <small class="text-muted">Recommended size: 1200x630 pixels</small>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Google Maps</h6>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="google_maps_embed" class="form-label">Google Maps Embed Code</label>
+                                <textarea class="form-control" id="google_maps_embed" name="google_maps_embed" rows="4"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.9826173374637!2d72.8258!3d19.0482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDAyJzUzLjUiTiA3MsKwNDknMzIuOSJF!5e0!3m2!1sen!2sin!4v1631234567890!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe></textarea>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="restaurantSettingsForm" class="btn btn-primary">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
@@ -556,359 +450,719 @@
 <div class="modal fade" id="notificationSettingsModal" tabindex="-1" aria-labelledby="notificationSettingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ url_for('admin_update_notification_settings') }}" method="POST">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="notificationSettingsModalLabel">Notification Settings</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs" id="notificationSettingsTabs" role="tablist">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationSettingsModalLabel">Notification Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="notificationSettingsForm" action="{{ url_for('admin_update_notification_settings') }}" method="post">
+                    {{ form.hidden_tag() }}
+                    
+                    <ul class="nav nav-tabs mb-4" id="emailTemplatesTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab">Email Notifications</button>
+                            <button class="nav-link active" id="order-confirmation-tab" data-bs-toggle="tab" data-bs-target="#order-confirmation" type="button" role="tab">Order Confirmation</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="sms-tab" data-bs-toggle="tab" data-bs-target="#sms" type="button" role="tab">SMS Notifications</button>
+                            <button class="nav-link" id="order-ready-tab" data-bs-toggle="tab" data-bs-target="#order-ready" type="button" role="tab">Order Ready</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab">Email Templates</button>
+                            <button class="nav-link" id="reservation-confirmation-tab" data-bs-toggle="tab" data-bs-target="#reservation-confirmation" type="button" role="tab">Reservation</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="banquet-confirmation-tab" data-bs-toggle="tab" data-bs-target="#banquet-confirmation" type="button" role="tab">Banquet</button>
                         </li>
                     </ul>
-                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="notificationSettingsTabContent">
-                        <div class="tab-pane fade show active" id="email" role="tabpanel" aria-labelledby="email-tab">
+                    
+                    <div class="tab-content" id="emailTemplatesContent">
+                        <div class="tab-pane fade show active" id="order-confirmation" role="tabpanel">
                             <div class="mb-3">
-                                <h6>Admin Notifications</h6>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="admin_new_order" name="admin_new_order" checked>
-                                    <label class="form-check-label" for="admin_new_order">
-                                        New Order Placed
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="admin_new_reservation" name="admin_new_reservation" checked>
-                                    <label class="form-check-label" for="admin_new_reservation">
-                                        New Reservation Made
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="admin_new_user" name="admin_new_user" checked>
-                                    <label class="form-check-label" for="admin_new_user">
-                                        New User Registration
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="admin_new_banquet" name="admin_new_banquet" checked>
-                                    <label class="form-check-label" for="admin_new_banquet">
-                                        New Banquet Booking
-                                    </label>
-                                </div>
+                                <label for="order_confirmation_subject" class="form-label">Email Subject</label>
+                                <input type="text" class="form-control" id="order_confirmation_subject" name="order_confirmation_subject" value="Your order from Dilly's Vegetarian Kitchen has been confirmed">
                             </div>
                             <div class="mb-3">
-                                <h6>Customer Notifications</h6>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="customer_order_confirmation" name="customer_order_confirmation" checked>
-                                    <label class="form-check-label" for="customer_order_confirmation">
-                                        Order Confirmation
-                                    </label>
+                                <label for="order_confirmation_template" class="form-label">Email Template</label>
+                                <div class="form-text mb-2">
+                                    Template variables are enclosed in double curly braces, e.g., <code>{{ '{{ customer_name }}' }}</code>. Use <code>{% raw %}{% for item in items %}{% endraw %}</code> for loops.
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="customer_order_update" name="customer_order_update" checked>
-                                    <label class="form-check-label" for="customer_order_update">
-                                        Order Status Updates
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="customer_reservation_confirmation" name="customer_reservation_confirmation" checked>
-                                    <label class="form-check-label" for="customer_reservation_confirmation">
-                                        Reservation Confirmation
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="customer_reservation_reminder" name="customer_reservation_reminder" checked>
-                                    <label class="form-check-label" for="customer_reservation_reminder">
-                                        Reservation Reminder (24 hours before)
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="customer_welcome" name="customer_welcome" checked>
-                                    <label class="form-check-label" for="customer_welcome">
-                                        Welcome Email on Registration
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <h6>Email Configuration</h6>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="smtp_host" class="form-label">SMTP Host</label>
-                                        <input type="text" class="form-control" id="smtp_host" name="smtp_host" value="smtp.example.com">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="smtp_port" class="form-label">SMTP Port</label>
-                                        <input type="number" class="form-control" id="smtp_port" name="smtp_port" value="587">
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="smtp_username" class="form-label">SMTP Username</label>
-                                        <input type="text" class="form-control" id="smtp_username" name="smtp_username" value="info@dillysvegkitchen.com">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="smtp_password" class="form-label">SMTP Password</label>
-                                        <input type="password" class="form-control" id="smtp_password" name="smtp_password" value="********">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="sender_email" class="form-label">Sender Email</label>
-                                    <input type="email" class="form-control" id="sender_email" name="sender_email" value="noreply@dillysvegkitchen.com">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="sender_name" class="form-label">Sender Name</label>
-                                    <input type="text" class="form-control" id="sender_name" name="sender_name" value="Dilly's Veg Kitchen">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="sms" role="tabpanel" aria-labelledby="sms-tab">
-                            <div class="mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="sms_enabled" name="sms_enabled" checked>
-                                    <label class="form-check-label" for="sms_enabled">Enable SMS Notifications</label>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <h6>SMS Provider Settings</h6>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="sms_provider" class="form-label">Provider</label>
-                                        <select class="form-select" id="sms_provider" name="sms_provider">
-                                            <option value="twilio" selected>Twilio</option>
-                                            <option value="textlocal">TextLocal</option>
-                                            <option value="msg91">MSG91</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="sms_api_key" class="form-label">API Key</label>
-                                        <input type="password" class="form-control" id="sms_api_key" name="sms_api_key" value="********">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="sms_sender_id" class="form-label">Sender ID</label>
-                                        <input type="text" class="form-control" id="sms_sender_id" name="sms_sender_id" value="DILLYS">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <h6>SMS Notification Types</h6>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="sms_order_confirmation" name="sms_order_confirmation" checked>
-                                    <label class="form-check-label" for="sms_order_confirmation">
-                                        Order Confirmation
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="sms_order_ready" name="sms_order_ready" checked>
-                                    <label class="form-check-label" for="sms_order_ready">
-                                        Order Ready for Pickup
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="sms_reservation_confirmation" name="sms_reservation_confirmation" checked>
-                                    <label class="form-check-label" for="sms_reservation_confirmation">
-                                        Reservation Confirmation
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="sms_reservation_reminder" name="sms_reservation_reminder" checked>
-                                    <label class="form-check-label" for="sms_reservation_reminder">
-                                        Reservation Reminder (3 hours before)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="templates" role="tabpanel" aria-labelledby="templates-tab">
-                            <div class="mb-3">
-                                <label for="template_select" class="form-label">Select Template</label>
-                                <select class="form-select" id="template_select">
-                                    <option value="order_confirmation">Order Confirmation</option>
-                                    <option value="reservation_confirmation">Reservation Confirmation</option>
-                                    <option value="welcome_email">Welcome Email</option>
-                                    <option value="password_reset">Password Reset</option>
-                                    <option value="banquet_booking">Banquet Booking Confirmation</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email_subject" class="form-label">Email Subject</label>
-                                <input type="text" class="form-control" id="email_subject" name="email_subject" value="Your Order Confirmation - Dilly's Veg Kitchen">
-                            </div>
-                            <div class="mb-3">
-                                <label for="email_template" class="form-label">Email Template</label>
-                                <textarea class="form-control" id="email_template" name="email_template" rows="10" style="font-family: monospace;">
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order Confirmation</title>
-</head>
-<body>
-    <h1>Thank you for your order!</h1>
-    <p>Dear {{customer_name}},</p>
-    <p>Your order #{{order_id}} has been confirmed and is being prepared.</p>
+                                <textarea class="form-control" id="order_confirmation_template" name="order_confirmation_template" rows="15">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 5px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="Dilly's Vegetarian Kitchen" width="150">
+    </div>
+    <h2 style="color: #4CAF50; text-align: center;">Order Confirmation</h2>
+    <p>Dear {{ customer_name }},</p>
+    <p>Your order #{{ order_id }} has been confirmed and is being prepared.</p>
     
-    <h3>Order Summary:</h3>
-    <table>
-        <tr>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Price</th>
+    <h3 style="margin-top: 20px;">Order Summary:</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr style="background-color: #f5f5f5;">
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Item</th>
+            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Quantity</th>
+            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
         </tr>
-        {{#each items}}
+        {% for item in items %}
         <tr>
-            <td>{{name}}</td>
-            <td>{{quantity}}</td>
-            <td>₹{{price}}</td>
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">{{ item.name }}</td>
+            <td style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">{{ item.quantity }}</td>
+            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">₹{{ item.price }}</td>
         </tr>
-        {{/each}}
+        {% endfor %}
         <tr>
-            <td colspan="2"><strong>Total</strong></td>
-            <td><strong>₹{{total}}</strong></td>
+            <td colspan="2" style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;"><strong>Total</strong></td>
+            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;"><strong>₹{{ total }}</strong></td>
         </tr>
     </table>
     
-    <p>Estimated {{delivery_or_pickup_time}}: {{time}}</p>
+    <p>Estimated {{ delivery_or_pickup_time }}: {{ time }}</p>
     
-    <p>Thank you for choosing Dilly's Veg Kitchen!</p>
-    <p>Regards,<br>Team Dilly's</p>
-</body>
-</html>
+    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px;">
+        <p style="margin: 0;"><strong>Order Type:</strong> {{ order_type }}</p>
+        {% if order_type == 'Delivery' %}
+        <p style="margin: 10px 0 0;"><strong>Delivery Address:</strong><br>{{ delivery_address }}</p>
+        {% endif %}
+    </div>
+    
+    <p style="margin-top: 30px;">Thank you for choosing Dilly's Vegetarian Kitchen. If you have any questions, please contact us at {{ restaurant_phone }}.</p>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #777; font-size: 12px;">
+        <p>Dilly's Vegetarian Kitchen<br>{{ restaurant_address }}<br>{{ restaurant_phone }}</p>
+    </div>
+</div>
                                 </textarea>
                             </div>
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Template variables are enclosed in double curly braces, e.g., <code>{{customer_name}}</code>. Use <code>{{#each items}}</code> for loops.
+                        </div>
+                        
+                        <div class="tab-pane fade" id="order-ready" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="order_ready_subject" class="form-label">Email Subject</label>
+                                <input type="text" class="form-control" id="order_ready_subject" name="order_ready_subject" value="Your order from Dilly's Vegetarian Kitchen is ready">
+                            </div>
+                            <div class="mb-3">
+                                <label for="order_ready_template" class="form-label">Email Template</label>
+                                <textarea class="form-control" id="order_ready_template" name="order_ready_template" rows="15">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 5px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="Dilly's Vegetarian Kitchen" width="150">
+    </div>
+    <h2 style="color: #4CAF50; text-align: center;">Your Order is Ready!</h2>
+    <p>Dear {{ customer_name }},</p>
+    <p>Your order #{{ order_id }} has been confirmed and is being prepared.</p>
+    
+    <h3 style="margin-top: 20px;">Order Summary:</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr style="background-color: #f5f5f5;">
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Item</th>
+            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Quantity</th>
+            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">{{ item.name }}</td>
+            <td style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">{{ item.quantity }}</td>
+            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">₹{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="2" style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;"><strong>Total</strong></td>
+            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;"><strong>₹{{ total }}</strong></td>
+        </tr>
+    </table>
+    
+    <p>Estimated {{ delivery_or_pickup_time }}: {{ time }}</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ tracking_url }}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">Track Your Order</a>
+    </div>
+    
+    <p style="margin-top: 30px;">Thank you for choosing Dilly's Vegetarian Kitchen. If you have any questions, please contact us at {{ restaurant_phone }}.</p>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #777; font-size: 12px;">
+        <p>Dilly's Vegetarian Kitchen<br>{{ restaurant_address }}<br>{{ restaurant_phone }}</p>
+    </div>
+</div>
+                                </textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="reservation-confirmation" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="reservation_confirmation_subject" class="form-label">Email Subject</label>
+                                <input type="text" class="form-control" id="reservation_confirmation_subject" name="reservation_confirmation_subject" value="Your reservation at Dilly's Vegetarian Kitchen is confirmed">
+                            </div>
+                            <div class="mb-3">
+                                <label for="reservation_confirmation_template" class="form-label">Email Template</label>
+                                <textarea class="form-control" id="reservation_confirmation_template" name="reservation_confirmation_template" rows="15">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 5px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="Dilly's Vegetarian Kitchen" width="150">
+    </div>
+    <h2 style="color: #4CAF50; text-align: center;">Reservation Confirmed</h2>
+    <p>Dear {{ customer_name }},</p>
+    
+    <p>Your table reservation at Dilly's Vegetarian Kitchen has been confirmed.</p>
+    
+    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <p><strong>Date:</strong> {{ reservation_date }}</p>
+        <p><strong>Time:</strong> {{ reservation_time }}</p>
+        <p><strong>Number of Guests:</strong> {{ guest_count }}</p>
+        {% if special_requests %}
+        <p><strong>Special Requests:</strong> {{ special_requests }}</p>
+        {% endif %}
+    </div>
+    
+    <p>We look forward to serving you. If you need to make any changes to your reservation, please contact us at {{ restaurant_phone }}.</p>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #777; font-size: 12px;">
+        <p>Dilly's Vegetarian Kitchen<br>{{ restaurant_address }}<br>{{ restaurant_phone }}</p>
+    </div>
+</div>
+                                </textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="banquet-confirmation" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="banquet_confirmation_subject" class="form-label">Email Subject</label>
+                                <input type="text" class="form-control" id="banquet_confirmation_subject" name="banquet_confirmation_subject" value="Your banquet booking at Dilly's Vegetarian Kitchen is confirmed">
+                            </div>
+                            <div class="mb-3">
+                                <label for="banquet_confirmation_template" class="form-label">Email Template</label>
+                                <textarea class="form-control" id="banquet_confirmation_template" name="banquet_confirmation_template" rows="15">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 5px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="Dilly's Vegetarian Kitchen" width="150">
+    </div>
+    <h2 style="color: #4CAF50; text-align: center;">Banquet Booking Confirmed</h2>
+    <p>Dear {{ customer_name }},</p>
+    
+    <p>Your banquet booking at Dilly's Vegetarian Kitchen has been confirmed.</p>
+    
+    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <p><strong>Event Type:</strong> {{ event_type }}</p>
+        <p><strong>Date:</strong> {{ event_date }}</p>
+        <p><strong>Time:</strong> {{ event_time }}</p>
+        <p><strong>Number of Guests:</strong> {{ guest_count }}</p>
+        {% if requirements %}
+        <p><strong>Special Requirements:</strong> {{ requirements }}</p>
+        {% endif %}
+    </div>
+    
+    <p>Our event coordinator will contact you shortly to discuss menu options and any other arrangements.</p>
+    
+    <p>If you need to make any changes to your booking, please contact us at {{ restaurant_phone }}.</p>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #777; font-size: 12px;">
+        <p>Dilly's Vegetarian Kitchen<br>{{ restaurant_address }}<br>{{ restaurant_phone }}</p>
+    </div>
+</div>
+                                </textarea>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="notificationSettingsForm" class="btn btn-primary">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Other modals would be similar, but for brevity, they are omitted here -->
-{% endblock %}
+<!-- Website Settings Modal -->
+<div class="modal fade" id="websiteSettingsModal" tabindex="-1" aria-labelledby="websiteSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="websiteSettingsModalLabel">Website Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="websiteSettingsForm" action="{{ url_for('admin_update_website_settings') }}" method="post">
+                    {{ form.hidden_tag() }}
+                    <ul class="nav nav-tabs mb-4" id="websiteSettingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="seo-tab" data-bs-toggle="tab" data-bs-target="#seo" type="button" role="tab">SEO</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations" type="button" role="tab">Integrations</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="websiteSettingsContent">
+                        <div class="tab-pane fade show active" id="general" role="tabpanel">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="site_title" class="form-label">Site Title</label>
+                                    <input type="text" class="form-control" id="site_title" name="site_title" value="Dilly's Vegetarian Kitchen">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="site_tagline" class="form-label">Tagline</label>
+                                    <input type="text" class="form-control" id="site_tagline" name="site_tagline" value="Authentic Vegetarian Restaurant">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="site_logo" class="form-label">Logo</label>
+                                    <input type="file" class="form-control" id="site_logo" name="site_logo">
+                                    <div class="form-text">Current logo: logo.png</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="site_favicon" class="form-label">Favicon</label>
+                                    <input type="file" class="form-control" id="site_favicon" name="site_favicon">
+                                    <div class="form-text">Current favicon: favicon.ico</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="site_about" class="form-label">About Us Content</label>
+                                <textarea class="form-control" id="site_about" name="site_about" rows="5">Dilly's Vegetarian Kitchen is a family-owned restaurant dedicated to serving authentic vegetarian cuisine. We use fresh, locally-sourced ingredients to create delicious and healthy meals.</textarea>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6 class="fw-bold">Color Scheme</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="primary_color" class="form-label">Primary Color</label>
+                                        <input type="color" class="form-control form-control-color w-100" id="primary_color" name="primary_color" value="#4CAF50">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="secondary_color" class="form-label">Secondary Color</label>
+                                        <input type="color" class="form-control form-control-color w-100" id="secondary_color" name="secondary_color" value="#FF9800">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="accent_color" class="form-label">Accent Color</label>
+                                        <input type="color" class="form-control form-control-color w-100" id="accent_color" name="accent_color" value="#2196F3">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="seo" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="meta_description" class="form-label">Meta Description</label>
+                                <textarea class="form-control" id="meta_description" name="meta_description" rows="3">Dilly's Vegetarian Kitchen offers delicious vegetarian cuisine in Mumbai. Visit us for authentic vegetarian meals, banquet hall booking, and takeaway options.</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="meta_keywords" class="form-label">Meta Keywords</label>
+                                <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="vegetarian restaurant, Mumbai vegetarian food, healthy dining, vegetarian menu, Indian vegetarian">
+                            </div>
+                            <div class="mb-3">
+                                <label for="google_analytics" class="form-label">Google Analytics Tracking ID</label>
+                                <input type="text" class="form-control" id="google_analytics" name="google_analytics" value="UA-XXXXXXXX-X">
+                            </div>
+                            <div class="mb-3">
+                                <label for="google_tag_manager" class="form-label">Google Tag Manager ID</label>
+                                <input type="text" class="form-control" id="google_tag_manager" name="google_tag_manager" value="GTM-XXXXXXX">
+                            </div>
+                            <div class="mb-3">
+                                <label for="robots_txt" class="form-label">Robots.txt Content</label>
+                                <textarea class="form-control" id="robots_txt" name="robots_txt" rows="5">User-agent: *
+Allow: /
+Disallow: /admin/
+Sitemap: https://www.dillysvegkitchen.com/sitemap.xml</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="integrations" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="facebook_pixel" class="form-label">Facebook Pixel ID</label>
+                                <input type="text" class="form-control" id="facebook_pixel" name="facebook_pixel" value="">
+                            </div>
+                            <div class="mb-3">
+                                <label for="zomato_widget" class="form-label">Zomato Widget Code</label>
+                                <textarea class="form-control" id="zomato_widget" name="zomato_widget" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="google_reviews_widget" class="form-label">Google Reviews Widget</label>
+                                <textarea class="form-control" id="google_reviews_widget" name="google_reviews_widget" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="custom_js" class="form-label">Custom JavaScript</label>
+                                <textarea class="form-control" id="custom_js" name="custom_js" rows="5"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="websiteSettingsForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Bootstrap tabs
-        document.querySelectorAll('.nav-tabs button').forEach(button => {
-            button.addEventListener('click', function(event) {
-                event.preventDefault();
-                this.classList.add('active');
-            });
-        });
-        
-        // Email template selection
-        const templateSelect = document.getElementById('template_select');
-        const emailSubject = document.getElementById('email_subject');
-        const emailTemplate = document.getElementById('email_template');
-        
-        templateSelect.addEventListener('change', function() {
-            // In a real app, this would make an AJAX call to get the template
-            // For now, we'll just update with some examples
-            switch(this.value) {
-                case 'order_confirmation':
-                    emailSubject.value = 'Your Order Confirmation - Dilly\'s Veg Kitchen';
-                    emailTemplate.value = `<!DOCTYPE html>
-<html>
-<head>
-    <title>Order Confirmation</title>
-</head>
-<body>
-    <h1>Thank you for your order!</h1>
-    <p>Dear {{customer_name}},</p>
-    <p>Your order #{{order_id}} has been confirmed and is being prepared.</p>
-    
-    <h3>Order Summary:</h3>
-    <table>
-        <tr>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Price</th>
-        </tr>
-        {{#each items}}
-        <tr>
-            <td>{{name}}</td>
-            <td>{{quantity}}</td>
-            <td>₹{{price}}</td>
-        </tr>
-        {{/each}}
-        <tr>
-            <td colspan="2"><strong>Total</strong></td>
-            <td><strong>₹{{total}}</strong></td>
-        </tr>
-    </table>
-    
-    <p>Estimated {{delivery_or_pickup_time}}: {{time}}</p>
-    
-    <p>Thank you for choosing Dilly's Veg Kitchen!</p>
-    <p>Regards,<br>Team Dilly's</p>
-</body>
-</html>`;
-                    break;
-                case 'reservation_confirmation':
-                    emailSubject.value = 'Your Reservation is Confirmed - Dilly\'s Veg Kitchen';
-                    emailTemplate.value = `<!DOCTYPE html>
-<html>
-<head>
-    <title>Reservation Confirmation</title>
-</head>
-<body>
-    <h1>Your Reservation is Confirmed!</h1>
-    <p>Dear {{customer_name}},</p>
-    <p>Your reservation at Dilly's Veg Kitchen has been confirmed.</p>
-    
-    <h3>Reservation Details:</h3>
-    <p><strong>Date:</strong> {{reservation_date}}</p>
-    <p><strong>Time:</strong> {{reservation_time}}</p>
-    <p><strong>Number of Guests:</strong> {{guest_count}}</p>
-    
-    <p>We look forward to serving you!</p>
-    <p>Regards,<br>Team Dilly's</p>
-</body>
-</html>`;
-                    break;
-                case 'welcome_email':
-                    emailSubject.value = 'Welcome to Dilly\'s Veg Kitchen';
-                    emailTemplate.value = `<!DOCTYPE html>
-<html>
-<head>
-    <title>Welcome to Dilly's Veg Kitchen</title>
-</head>
-<body>
-    <h1>Welcome to Dilly's Veg Kitchen!</h1>
-    <p>Dear {{customer_name}},</p>
-    <p>Thank you for joining Dilly's Veg Kitchen. We're excited to have you as part of our vegetarian food community!</p>
-    
-    <p>With your account, you can:</p>
-    <ul>
-        <li>Place orders for takeaway or delivery</li>
-        <li>Make table reservations</li>
-        <li>Book our banquet hall for special events</li>
-        <li>Save your favorite dishes</li>
-    </ul>
-    
-    <p>We look forward to serving you!</p>
-    <p>Regards,<br>Team Dilly's</p>
-</body>
-</html>`;
-                    break;
-                // Add more templates as needed
-            }
-        });
-    });
-</script>
+<!-- Payment Settings Modal -->
+<div class="modal fade" id="paymentSettingsModal" tabindex="-1" aria-labelledby="paymentSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentSettingsModalLabel">Payment Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentSettingsForm">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">General</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="currency" class="form-label">Currency</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="INR" selected>Indian Rupee (₹)</option>
+                                    <option value="USD">US Dollar ($)</option>
+                                    <option value="EUR">Euro (€)</option>
+                                    <option value="GBP">British Pound (£)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                                <input type="number" class="form-control" id="tax_rate" name="tax_rate" value="5" min="0" max="100" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Payment Methods</h6>
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_cash" checked>
+                                    <label class="form-check-label fw-bold" for="enable_cash">Cash on Delivery / Pay at Counter</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">Allow customers to pay with cash on delivery or at the counter when picking up their order.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_upi" checked>
+                                    <label class="form-check-label fw-bold" for="enable_upi">UPI Payment</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="upi_id" class="form-label">UPI ID</label>
+                                    <input type="text" class="form-control" id="upi_id" name="upi_id" value="dillys@ybl">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="upi_qr_code" class="form-label">QR Code Image</label>
+                                    <input type="file" class="form-control" id="upi_qr_code" name="upi_qr_code">
+                                    <div class="form-text">Current QR code: upi-qr.png</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_razorpay">
+                                    <label class="form-check-label fw-bold" for="enable_razorpay">Razorpay</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="razorpay_key_id" class="form-label">Key ID</label>
+                                    <input type="text" class="form-control" id="razorpay_key_id" name="razorpay_key_id" value="">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="razorpay_key_secret" class="form-label">Key Secret</label>
+                                    <input type="password" class="form-control" id="razorpay_key_secret" name="razorpay_key_secret" value="">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_paytm">
+                                    <label class="form-check-label fw-bold" for="enable_paytm">Paytm</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="paytm_merchant_id" class="form-label">Merchant ID</label>
+                                    <input type="text" class="form-control" id="paytm_merchant_id" name="paytm_merchant_id" value="">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="paytm_merchant_key" class="form-label">Merchant Key</label>
+                                    <input type="password" class="form-control" id="paytm_merchant_key" name="paytm_merchant_key" value="">
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="paytm_test_mode" checked>
+                                        <label class="form-check-label" for="paytm_test_mode">
+                                            Test Mode
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reservation Settings Modal -->
+<div class="modal fade" id="reservationSettingsModal" tabindex="-1" aria-labelledby="reservationSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reservationSettingsModalLabel">Reservation Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reservationSettingsForm">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">General Settings</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="max_reservation_days_advance" class="form-label">Maximum Days in Advance</label>
+                                <input type="number" class="form-control" id="max_reservation_days_advance" name="max_reservation_days_advance" value="30" min="1" max="90">
+                                <div class="form-text">How many days in advance can customers make reservations.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="min_reservation_hours_before" class="form-label">Minimum Hours Before</label>
+                                <input type="number" class="form-control" id="min_reservation_hours_before" name="min_reservation_hours_before" value="2" min="0" max="48">
+                                <div class="form-text">Minimum hours before a reservation can be made.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_party_size" class="form-label">Maximum Party Size</label>
+                                <input type="number" class="form-control" id="max_party_size" name="max_party_size" value="20" min="1" max="100">
+                                <div class="form-text">Maximum number of guests allowed per reservation.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reservation_duration" class="form-label">Default Reservation Duration (minutes)</label>
+                                <input type="number" class="form-control" id="reservation_duration" name="reservation_duration" value="90" min="30" max="240" step="15">
+                                <div class="form-text">How long a typical reservation lasts.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Time Slots</h6>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Configure the time slots available for reservations.
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="lunch_start_time" class="form-label">Lunch Service</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Start</span>
+                                    <input type="time" class="form-control" id="lunch_start_time" name="lunch_start_time" value="12:00">
+                                    <span class="input-group-text">End</span>
+                                    <input type="time" class="form-control" id="lunch_end_time" name="lunch_end_time" value="14:30">
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="dinner_start_time" class="form-label">Dinner Service</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Start</span>
+                                    <input type="time" class="form-control" id="dinner_start_time" name="dinner_start_time" value="19:00">
+                                    <span class="input-group-text">End</span>
+                                    <input type="time" class="form-control" id="dinner_end_time" name="dinner_end_time" value="21:30">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="time_slot_interval" class="form-label">Time Slot Interval (minutes)</label>
+                                <select class="form-select" id="time_slot_interval" name="time_slot_interval">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30" selected>30 minutes</option>
+                                    <option value="45">45 minutes</option>
+                                    <option value="60">60 minutes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_reservations_per_slot" class="form-label">Max Reservations Per Slot</label>
+                                <input type="number" class="form-control" id="max_reservations_per_slot" name="max_reservations_per_slot" value="10" min="1" max="50">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Banquet Hall Settings</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="banquet_min_guests" class="form-label">Minimum Guests Required</label>
+                                <input type="number" class="form-control" id="banquet_min_guests" name="banquet_min_guests" value="25" min="1" max="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="banquet_max_capacity" class="form-label">Maximum Capacity</label>
+                                <input type="number" class="form-control" id="banquet_max_capacity" name="banquet_max_capacity" value="150" min="1" max="500">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="banquet_allowed_hours" class="form-label">Allowed Booking Hours</label>
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_10" name="banquet_time_10" checked>
+                                            <label class="form-check-label" for="banquet_time_10">10:00 AM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_11" name="banquet_time_11" checked>
+                                            <label class="form-check-label" for="banquet_time_11">11:00 AM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_12" name="banquet_time_12" checked>
+                                            <label class="form-check-label" for="banquet_time_12">12:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_13" name="banquet_time_13" checked>
+                                            <label class="form-check-label" for="banquet_time_13">1:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_16" name="banquet_time_16" checked>
+                                            <label class="form-check-label" for="banquet_time_16">4:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_17" name="banquet_time_17" checked>
+                                            <label class="form-check-label" for="banquet_time_17">5:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_18" name="banquet_time_18" checked>
+                                            <label class="form-check-label" for="banquet_time_18">6:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="banquet_time_19" name="banquet_time_19" checked>
+                                            <label class="form-check-label" for="banquet_time_19">7:00 PM</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Settings Modal -->
+<div class="modal fade" id="securitySettingsModal" tabindex="-1" aria-labelledby="securitySettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="securitySettingsModalLabel">Security Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="securitySettingsForm">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Administrator Access</h6>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Be careful when modifying administrator settings.
+                        </div>
+                        <div class="mb-3">
+                            <label for="admin_email" class="form-label">Administrator Email</label>
+                            <input type="email" class="form-control" id="admin_email" name="admin_email" value="admin@dillysvegkitchen.com">
+                        </div>
+                        <div class="mb-3">
+                            <label for="current_admin_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_admin_password" name="current_admin_password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_admin_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_admin_password" name="new_admin_password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_admin_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_admin_password" name="confirm_admin_password">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Backup Settings</h6>
+                        <div class="mb-3">
+                            <label for="backup_frequency" class="form-label">Backup Frequency</label>
+                            <select class="form-select" id="backup_frequency" name="backup_frequency">
+                                <option value="daily" selected>Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="backup_time" class="form-label">Backup Time</label>
+                            <input type="time" class="form-control" id="backup_time" name="backup_time" value="04:00">
+                        </div>
+                        <div class="mb-3">
+                            <label for="backup_retention" class="form-label">Retention Period (days)</label>
+                            <input type="number" class="form-control" id="backup_retention" name="backup_retention" value="30" min="1" max="365">
+                        </div>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary">
+                                <i class="fas fa-download me-2"></i> Download Latest Backup
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Security Options</h6>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="enable_login_attempts" checked>
+                                <label class="form-check-label" for="enable_login_attempts">Limit Login Attempts</label>
+                            </div>
+                            <div class="form-text">Block login attempts after multiple failures.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="max_login_attempts" class="form-label">Maximum Login Attempts</label>
+                            <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" value="5" min="1" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <label for="login_lockout_duration" class="form-label">Lockout Duration (minutes)</label>
+                            <input type="number" class="form-control" id="login_lockout_duration" name="login_lockout_duration" value="30" min="5" max="1440">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="enforce_password_strength" checked>
+                                <label class="form-check-label" for="enforce_password_strength">Enforce Strong Passwords</label>
+                            </div>
+                            <div class="form-text">Require complex passwords for all user accounts.</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="enable_https_only">
+                                <label class="form-check-label" for="enable_https_only">HTTPS Only</label>
+                            </div>
+                            <div class="form-text">Force all connections to use HTTPS.</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
