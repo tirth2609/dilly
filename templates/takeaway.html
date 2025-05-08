@@ -328,35 +328,39 @@
                             </div>
                             
                             <div class="mb-4">
-                                <h5>Payment Method</h5>
+                                <h5>Payment Method (At Pickup)</h5>
+                                <p class="text-muted small mb-3">Select how you would like to pay when you pick up your order</p>
                                 <div class="mb-3">
                                     <div class="form-check mb-2">
                                         {{ form.payment_method(class="form-check-input", id="payment_counter", value="counter", checked=true) }}
                                         <label class="form-check-label" for="payment_counter">
-                                            <i class="fas fa-cash-register me-2"></i> Pay at Counter
+                                            <i class="fas fa-cash-register me-2"></i> Pay at Counter when picking up
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
                                         {{ form.payment_method(class="form-check-input", id="payment_qr_code", value="qr_code") }}
                                         <label class="form-check-label" for="payment_qr_code">
-                                            <i class="fas fa-qrcode me-2"></i> QR Code Payment at Pickup
+                                            <i class="fas fa-qrcode me-2"></i> QR Code Payment when picking up
                                         </label>
                                     </div>
                                 </div>
                                 
                                 <div class="card border d-none" id="upi-payment-section">
                                     <div class="card-body text-center">
-                                        <h6 class="mb-3">Scan QR Code to Pay</h6>
+                                        <h6 class="mb-3">QR Code Payment Information</h6>
+                                        <p class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            You will be able to scan this QR code when you pick up your order.
+                                            <strong>No payment is required now.</strong>
+                                        </p>
                                         <div class="mb-3 d-inline-block bg-white p-3 border rounded">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="150" height="150">
                                                 <rect x="0" y="0" width="200" height="200" fill="#fff"></rect>
                                                 <path d="M30,30 L30,50 L50,50 L50,30 Z M60,30 L60,50 L80,50 L80,30 Z M90,30 L90,50 L110,50 L110,30 Z M120,30 L120,50 L140,50 L140,30 Z M150,30 L150,50 L170,50 L170,30 Z M30,60 L30,80 L50,80 L50,60 Z M150,60 L150,80 L170,80 L170,60 Z M30,90 L30,110 L50,110 L50,90 Z M60,90 L60,110 L80,110 L80,90 Z M90,90 L90,110 L110,110 L110,90 Z M120,90 L120,110 L140,110 L140,90 Z M150,90 L150,110 L170,110 L170,90 Z M30,120 L30,140 L50,140 L50,120 Z M150,120 L150,140 L170,140 L170,120 Z M30,150 L30,170 L50,170 L50,150 Z M60,150 L60,170 L80,170 L80,150 Z M90,150 L90,170 L110,170 L110,150 Z M120,150 L120,170 L140,170 L140,150 Z M150,150 L150,170 L170,170 L170,150 Z" fill="#000"></path>
                                             </svg>
                                         </div>
-                                        <p class="mb-4">UPI ID: payments@dillysveg</p>
-                                        <button type="button" class="btn btn-success" id="upi-confirm-btn">
-                                            <i class="fas fa-check me-2"></i> I've Made the Payment
-                                        </button>
+                                        <p class="mb-1">UPI ID: payments@dillysveg</p>
+                                        <p class="text-muted small mb-3">(This is just a preview of what you'll see when picking up)</p>
                                     </div>
                                 </div>
                             </div>
