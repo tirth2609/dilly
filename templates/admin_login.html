@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Login - Dilly's Veg Kitchen{% endblock %}
+{% block title %}Admin Login - Dilly's Veg Kitchen{% endblock %}
 
 {% block content %}
 <section class="py-5">
@@ -10,16 +10,16 @@
                 <div class="card border-0 shadow">
                     <div class="card-body p-5">
                         <div class="text-center mb-4">
-                            <h2>Customer Login</h2>
-                            <p class="text-muted">Access your profile, orders and reservations</p>
+                            <h2>Admin Login</h2>
+                            <p class="text-muted">Access the restaurant management system</p>
                         </div>
                         
-                        <form method="POST" action="{{ url_for('login') }}">
+                        <form method="POST" action="{{ url_for('admin_login') }}">
                             {{ form.hidden_tag() }}
                             
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email Address</label>
-                                {{ form.email(class="form-control", placeholder="Enter your email address") }}
+                                {{ form.email(class="form-control", placeholder="Enter your admin email address") }}
                                 {% if form.email.errors %}
                                     <div class="invalid-feedback d-block">
                                         {% for error in form.email.errors %}
@@ -51,8 +51,7 @@
                             </div>
                             
                             <div class="text-center mt-4">
-                                <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
-                                <p><a href="#" class="text-muted">Forgot your password?</a></p>
+                                <p>Not an admin? <a href="{{ url_for('login') }}">Go to user login</a></p>
                             </div>
                         </form>
                     </div>
