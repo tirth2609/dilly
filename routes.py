@@ -1246,16 +1246,16 @@ def init_routes(app):
                 return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
             total_amount += menu_item.price * item['quantity']
             
-        # Create order - using QR code for dine-in orders
+        # Create order - QR code orders are also takeaway
         order = Order(
-            name=data.get('name', 'Table Customer'),
-            email=data.get('email', 'table@example.com'),
+            name=data.get('name', 'QR Customer'),
+            email=data.get('email', 'qr@example.com'),
             phone=data.get('phone', '0000000000'),
-            order_type='dine-in',  # Still dine-in for table orders
-            table_number=int(table_id),
+            order_type='takeaway',  # All orders are takeaway
+            table_number=int(table_id),  # We keep the table_number for reference only
             special_instructions=data.get('special_instructions', ''),
             total_amount=total_amount,
-            payment_method='counter',  # Will pay at counter after meal
+            payment_method='qr_code',  # Default to QR code payment for QR-initiated orders
             payment_status='pending',
             status='pending',
             user_id=current_user.id if current_user.is_authenticated else None
@@ -1281,7 +1281,7 @@ def init_routes(app):
         return jsonify({
             'success': True,
             'order_id': order.id,
-            'message': 'Your order has been placed. Please pay at the counter after your meal.'
+            'message': 'Your takeaway order has been placed. Please pay using the QR code when picking up your order.'
         })
     
     @app.route('/takeaway', methods=['GET', 'POST'])
