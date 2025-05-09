@@ -3,7 +3,7 @@ from flask_login import login_user, current_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta, time
 from functools import wraps
 import json
 import qrcode
