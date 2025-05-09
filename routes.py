@@ -1261,15 +1261,29 @@ def init_routes(app):
         # Get the table object to check its status
         table = Table.query.filter_by(table_number=table_id).first()
         
-        # Get any existing active or ready order for this table
+        # Get any existing active, ready or pending order for this table
         existing_order = None
         if table:
+            # Try to find an active dining session for this table
             existing_order = Order.query.filter_by(
                 table_number=int(table_id),
                 order_type='dine-in'
             ).filter(
-                Order.status.in_(['active', 'ready'])
+                Order.status.in_(['active', 'ready']),
+                Order.payment_status == 'pending'  # Only unpaid orders
             ).order_by(Order.id.desc()).first()
+            
+            # If table is occupied but no active order is found, check for any recently created order
+            if not existing_order and table.status == 'Occupied':
+                # Look for any order created in the last 3 hours
+                three_hours_ago = datetime.utcnow() - timedelta(hours=3)
+                existing_order = Order.query.filter_by(
+                    table_number=int(table_id),
+                    order_type='dine-in'
+                ).filter(
+                    Order.created_at >= three_hours_ago,
+                    Order.payment_status == 'pending'  # Only unpaid orders
+                ).order_by(Order.id.desc()).first()
         
         categories = Category.query.order_by(Category.display_order).all()
         menu_items = MenuItem.query.filter_by(is_available=True).all()
@@ -1336,7 +1350,8 @@ def init_routes(app):
                 'updated': True,
                 'message': f'Added items to your existing order. Your new total is ₹{order.total_amount:.2f}.',
                 'original_amount': original_amount,
-                'additional_amount': additional_amount
+                'additional_amount': additional_amount,
+                'total_amount': order.total_amount
             })
         else:
             # Calculate total for new order

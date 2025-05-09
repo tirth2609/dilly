@@ -220,20 +220,46 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Show success message
-                    const successMessage = document.getElementById('order-success-message');
-                    const orderIdElement = document.getElementById('order-id');
-                    
-                    if (successMessage && orderIdElement) {
-                        orderIdElement.textContent = data.order_id;
-                        successMessage.classList.remove('d-none');
+                    // Handle success based on whether it's a new order or updated order
+                    if (data.updated) {
+                        // Items added to existing order
+                        const successMessage = document.getElementById('order-update-message');
+                        const orderIdElement = document.getElementById('update-order-id');
+                        const totalElement = document.getElementById('update-total-amount');
                         
-                        // Hide order form
-                        orderForm.classList.add('d-none');
+                        if (successMessage && orderIdElement && totalElement) {
+                            orderIdElement.textContent = data.order_id;
+                            totalElement.textContent = '₹' + parseFloat(data.total_amount).toFixed(2);
+                            successMessage.classList.remove('d-none');
+                            
+                            // Hide order form
+                            orderForm.classList.add('d-none');
+                            
+                            // Clear cart
+                            cart = [];
+                            updateQrCartUI();
+                            
+                            // Set a timer to reload the page after showing the update message
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 3000);
+                        }
+                    } else {
+                        // New order
+                        const successMessage = document.getElementById('order-success-message');
+                        const orderIdElement = document.getElementById('order-id');
                         
-                        // Clear cart
-                        cart = [];
-                        updateQrCartUI();
+                        if (successMessage && orderIdElement) {
+                            orderIdElement.textContent = data.order_id;
+                            successMessage.classList.remove('d-none');
+                            
+                            // Hide order form
+                            orderForm.classList.add('d-none');
+                            
+                            // Clear cart
+                            cart = [];
+                            updateQrCartUI();
+                        }
                     }
                 } else {
                     alert('Error placing order: ' + data.error);

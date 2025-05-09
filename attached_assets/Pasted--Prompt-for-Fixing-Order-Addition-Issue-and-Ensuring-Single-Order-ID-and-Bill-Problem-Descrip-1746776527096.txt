@@ -1,0 +1,46 @@
+**Prompt for Fixing Order Addition Issue and Ensuring Single Order ID and Bill:**
+
+**Problem Description:**
+
+Customers using the QR code-based menu are encountering an issue where, after successfully placing an initial order, attempting to add more items from the menu page triggers a "Your order is placed successfully" popup. However, these subsequently added items are **not** appearing in the Admin Panel's Order Management section. Furthermore, the expectation is that all items added by a customer at the same table within a reasonable timeframe should be associated with the **same Order ID** in the Admin Panel and reflected in a **single bill**, rather than creating new, separate orders or bills.
+
+**Desired Behavior:**
+
+1.  **Adding Items to Existing Order (Customer-Facing):**
+    * When a customer at a specific table (identified by the QR code) adds items to their cart *after* an initial order has been placed but *before* requesting the bill, the system should:
+        * Silently update the existing order associated with that table.
+        * Provide visual feedback to the customer that the items have been added to their current order (e.g., updating the cart display or a subtle "Items added to your ongoing order" message, *without* implying a completely new order placement).
+        * The "Your order is placed successfully" popup should be reserved for the initial order placement.
+
+2.  **Order Management (Admin Panel):**
+    * All items added by a customer at the same table *within a single dining session* should be consolidated under a **single, consistent Order ID**.
+    * The Order Details view in the Admin Panel for that Order ID should accurately reflect all initially ordered and subsequently added items with their respective quantities and prices.
+
+3.  **Bill Generation (Admin Panel):**
+    * When generating the bill for a table, the system should compile all items associated with the **single Order ID** for that table into one comprehensive bill, reflecting all additions made throughout their dining session. There should not be separate bills for initial and added items.
+
+**Technical Requirements and Considerations:**
+
+* **Table Identification:** The system must reliably track which table a customer is ordering from via the scanned QR code. This table identifier should be persistent throughout the customer's session.
+* **Order Association:** A mechanism is needed to associate subsequently added items with the existing order for the specific table. This likely involves checking for an active, unpaid order associated with the table.
+* **Data Persistence:** Ensure that the added items are correctly stored and linked to the original order in the database.
+* **Real-time Updates (Desired):** Ideally, changes made by the customer when adding items should be reflected in the Admin Panel's Order Details view in near real-time or with a short delay.
+* **Concurrency Control:** Implement measures to prevent data inconsistencies if multiple items are added simultaneously.
+
+**Specific Prompts for Development/Debugging:**
+
+* **Investigate the backend logic that handles item additions from the QR code menu.** Identify why a new "successful order" message is triggered instead of updating the existing one.
+* **Examine the database structure and relationships between tables (e.g., Orders, OrderItems, Tables).** Ensure there's a clear link between a table and its active, unpaid order.
+* **Implement a function that checks for an existing active order associated with a specific Table ID.** If one exists, new items should be added as new entries in the `OrderItems` table linked to that existing `OrderID`.
+* **Modify the frontend behavior on the menu page after an initial order.** Instead of triggering a full "order successful" popup, implement a more subtle indication that items are being added to the current session's order.
+* **Update the Admin Panel's Order Details retrieval logic.** Ensure it fetches all `OrderItems` associated with a single `OrderID` to display the complete order.
+* **Modify the bill generation process.** Ensure it retrieves all `OrderItems` linked to the relevant `OrderID` for a given table to create a unified bill.
+* **Consider implementing a timestamp or activity tracker for orders associated with a table.** This could help define the "single dining session" timeframe for consolidating items.
+
+**Success Criteria:**
+
+* Customers can seamlessly add items to their existing order from the QR code menu without the confusion of a new "order successful" message.
+* All items ordered by a customer at a single table during their dining session are correctly reflected under a single Order ID in the Admin Panel.
+* Generating a bill for a table produces a single, comprehensive bill containing all ordered items.
+
+By addressing these points, the system will provide a more intuitive and accurate ordering experience for dine-in customers and a more streamlined order management process for the restaurant staff.

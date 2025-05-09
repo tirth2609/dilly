@@ -255,12 +255,25 @@
                     </div>
                 </form>
                 
-                <!-- Success Message (Hidden by default) -->
+                <!-- New Order Success Message (Hidden by default) -->
                 <div id="order-success-message" class="text-center py-4 d-none">
                     <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
                     <h4>Order Placed Successfully!</h4>
                     <p>Your order #<span id="order-id"></span> has been received and is being prepared.</p>
+                    <p>You can continue to add items to your order throughout your meal.</p>
                     <p>Please pay at the counter after your meal.</p>
+                    <div class="d-grid mt-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">Continue Ordering</button>
+                    </div>
+                </div>
+                
+                <!-- Update Order Success Message (Hidden by default) -->
+                <div id="order-update-message" class="text-center py-4 d-none">
+                    <i class="fas fa-plus-circle text-info fa-4x mb-3"></i>
+                    <h4>Items Added to Your Order!</h4>
+                    <p>Your items have been added to order #<span id="update-order-id"></span>.</p>
+                    <p>Your updated total is <span id="update-total-amount"></span>.</p>
+                    <p>Returning to the menu so you can continue ordering...</p>
                 </div>
             </div>
         </div>
