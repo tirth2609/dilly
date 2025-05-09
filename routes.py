@@ -584,10 +584,12 @@ def init_routes(app):
         # If order is dine-in and status changed to completed, update table status
         if order.order_type == 'dine-in' and new_status == 'completed' and old_status != 'completed':
             if order.table_number:
-                table = Table.query.filter_by(table_number=order.table_number).first()
+                # Convert the integer to string for table lookup
+                table_num_str = str(order.table_number)
+                table = Table.query.filter_by(table_number=table_num_str).first()
                 if table and table.status == 'Occupied':
                     table.status = 'Available'
-                    flash(f'Table {order.table_number} has been marked as Available.', 'info')
+                    flash(f'Table {table_num_str} has been marked as Available.', 'info')
         
         db.session.commit()
         
@@ -607,10 +609,12 @@ def init_routes(app):
         
         # If it's a dine-in order, free up the table
         if order.order_type == 'dine-in' and order.table_number:
-            table = Table.query.filter_by(table_number=order.table_number).first()
+            # Convert integer to string for table lookup
+            table_num_str = str(order.table_number)
+            table = Table.query.filter_by(table_number=table_num_str).first()
             if table and table.status == 'Occupied':
                 table.status = 'Available'
-                flash(f'Table {order.table_number} has been marked as Available.', 'info')
+                flash(f'Table {table_num_str} has been marked as Available.', 'info')
         
         db.session.commit()
         
