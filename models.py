@@ -57,7 +57,7 @@ class MenuItem(db.Model):
     name = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)  # Price in INR
-    image_url = db.Column(db.String(256), nullable=True)
+    image_url = db.Column(db.Text, nullable=True)  # Changed to Text to support longer image data
     is_vegan = db.Column(db.Boolean, default=False)
     is_gluten_free = db.Column(db.Boolean, default=False)
     is_jain = db.Column(db.Boolean, default=False)
