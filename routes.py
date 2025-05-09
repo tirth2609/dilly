@@ -1734,3 +1734,15 @@ def init_routes(app):
     @app.errorhandler(500)
     def internal_server_error(e):
         return render_template('error.html', error_code=500, error_message='Server error', datetime=datetime), 500
+        
+    @app.route('/admin/orders/print-bill/<int:order_id>')
+    @login_required
+    @admin_required
+    def print_bill(order_id):
+        order = Order.query.get_or_404(order_id)
+        # Eager load menu items to avoid N+1 query issues
+        order_items = OrderItem.query.filter_by(order_id=order.id).all()
+        for item in order_items:
+            item.menu_item = MenuItem.query.get(item.menu_item_id)
+        
+        return render_template('print_bill.html', order=order)
