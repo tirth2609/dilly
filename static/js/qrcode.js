@@ -203,6 +203,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 items: cart
             };
             
+            // Check if we're adding to an existing order
+            const existingOrderId = formData.get('existing_order_id');
+            if (existingOrderId) {
+                customerData.existing_order_id = existingOrderId;
+            }
+            
             // Send order to server
             fetch('/qr-menu/order', {
                 method: 'POST',

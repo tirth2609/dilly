@@ -219,6 +219,12 @@
             <div class="modal-body">
                 <form id="qr-order-form">
                     <input type="hidden" name="table_id" value="{{ table_id }}">
+                    {% if existing_order %}
+                    <input type="hidden" name="existing_order_id" value="{{ existing_order.id }}">
+                    <div class="alert alert-info mb-3">
+                        <small><i class="fas fa-info-circle me-1"></i> Adding to existing order #{{ existing_order.id }}</small>
+                    </div>
+                    {% endif %}
                     
                     <div class="mb-3">
                         <label for="customer_name" class="form-label">Your Name</label>

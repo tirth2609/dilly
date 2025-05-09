@@ -581,15 +581,31 @@ def init_routes(app):
         order.status = new_status
         order.payment_status = payment_status
         
-        # If order is dine-in and status changed to completed, update table status
-        if order.order_type == 'dine-in' and new_status == 'completed' and old_status != 'completed':
-            if order.table_number:
-                # Convert the integer to string for table lookup
-                table_num_str = str(order.table_number)
+        # If order is dine-in and status changed to completed, ready, or cancelled, update table status
+        if order.order_type == 'dine-in' and order.table_number:
+            should_update_table = False
+            # Convert the integer to string for table lookup
+            table_num_str = str(order.table_number)
+            
+            # If status changed to completed, free the table
+            if new_status == 'completed' and old_status != 'completed':
+                should_update_table = True
+            # If status changed to cancelled, free the table  
+            elif new_status == 'cancelled' and old_status != 'cancelled':
+                should_update_table = True
+            
+            if should_update_table:
                 table = Table.query.filter_by(table_number=table_num_str).first()
                 if table and table.status == 'Occupied':
                     table.status = 'Available'
                     flash(f'Table {table_num_str} has been marked as Available.', 'info')
+            
+            # If status changed to active or ready, make sure table is occupied
+            if (new_status == 'active' or new_status == 'ready') and old_status not in ['active', 'ready']:
+                table = Table.query.filter_by(table_number=table_num_str).first()
+                if table and table.status == 'Available':
+                    table.status = 'Occupied'
+                    flash(f'Table {table_num_str} has been marked as Occupied.', 'info')
         
         db.session.commit()
         
@@ -1245,13 +1261,14 @@ def init_routes(app):
         # Get the table object to check its status
         table = Table.query.filter_by(table_number=table_id).first()
         
-        # Get any existing active order for this table
+        # Get any existing active or ready order for this table
         existing_order = None
         if table:
             existing_order = Order.query.filter_by(
                 table_number=int(table_id),
-                status='active',
                 order_type='dine-in'
+            ).filter(
+                Order.status.in_(['active', 'ready'])
             ).order_by(Order.id.desc()).first()
         
         categories = Category.query.order_by(Category.display_order).all()
@@ -1284,8 +1301,8 @@ def init_routes(app):
         if existing_order_id:
             # We're adding items to an existing order
             order = Order.query.get(existing_order_id)
-            if not order or order.status != 'active':
-                return jsonify({'error': 'Existing order not found or not active'}), 404
+            if not order or order.status not in ['active', 'ready']:
+                return jsonify({'error': 'Existing order not found or not in an editable state'}), 404
             
             # Calculate additional amount
             additional_amount = 0
