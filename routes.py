@@ -577,8 +577,17 @@ def init_routes(app):
         payment_status = request.form.get('payment_status')
         
         order = Order.query.get_or_404(order_id)
+        old_status = order.status
         order.status = new_status
         order.payment_status = payment_status
+        
+        # If order is dine-in and status changed to completed, update table status
+        if order.order_type == 'dine-in' and new_status == 'completed' and old_status != 'completed':
+            if order.table_number:
+                table = Table.query.filter_by(table_number=order.table_number).first()
+                if table and table.status == 'Occupied':
+                    table.status = 'Available'
+                    flash(f'Table {order.table_number} has been marked as Available.', 'info')
         
         db.session.commit()
         
@@ -595,6 +604,13 @@ def init_routes(app):
         order = Order.query.get_or_404(order_id)
         order.status = 'cancelled'
         order.special_instructions += f"\n\nCancellation reason: {reason}"
+        
+        # If it's a dine-in order, free up the table
+        if order.order_type == 'dine-in' and order.table_number:
+            table = Table.query.filter_by(table_number=order.table_number).first()
+            if table and table.status == 'Occupied':
+                table.status = 'Available'
+                flash(f'Table {order.table_number} has been marked as Available.', 'info')
         
         db.session.commit()
         
@@ -1221,12 +1237,28 @@ def init_routes(app):
     @app.route('/qr-menu')
     def qr_menu():
         table_id = request.args.get('table', '1')
+        
+        # Get the table object to check its status
+        table = Table.query.filter_by(table_number=table_id).first()
+        
+        # Get any existing active order for this table
+        existing_order = None
+        if table:
+            existing_order = Order.query.filter_by(
+                table_number=int(table_id),
+                status='active',
+                order_type='dine-in'
+            ).order_by(Order.id.desc()).first()
+        
         categories = Category.query.order_by(Category.display_order).all()
         menu_items = MenuItem.query.filter_by(is_available=True).all()
+        
         return render_template('qr_menu.html', 
                               categories=categories, 
                               menu_items=menu_items, 
                               table_id=table_id,
+                              existing_order=existing_order,
+                              table=table,
                               datetime=datetime)
     
     @app.route('/qr-menu/order', methods=['POST'])
@@ -1234,55 +1266,108 @@ def init_routes(app):
         data = request.json
         table_id = data.get('table_id')
         items = data.get('items', [])
+        existing_order_id = data.get('existing_order_id')
         
         if not items:
             return jsonify({'error': 'No items in order'}), 400
-            
-        # Calculate total
-        total_amount = 0
-        for item in items:
-            menu_item = MenuItem.query.get(item['id'])
-            if not menu_item:
-                return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
-            total_amount += menu_item.price * item['quantity']
-            
-        # Create order - QR code orders are also takeaway
-        order = Order(
-            name=data.get('name', 'QR Customer'),
-            email=data.get('email', 'qr@example.com'),
-            phone=data.get('phone', '0000000000'),
-            order_type='takeaway',  # All orders are takeaway
-            table_number=int(table_id),  # We keep the table_number for reference only
-            special_instructions=data.get('special_instructions', ''),
-            total_amount=total_amount,
-            payment_method='qr_code',  # Default to QR code payment for QR-initiated orders
-            payment_status='pending',
-            status='pending',
-            user_id=current_user.id if current_user.is_authenticated else None
-        )
         
-        db.session.add(order)
-        db.session.flush()  # To get the order ID
+        # Get table
+        table = Table.query.filter_by(table_number=table_id).first()
+        if not table:
+            return jsonify({'error': 'Table not found'}), 404
         
-        # Add order items
-        for item in items:
-            menu_item = MenuItem.query.get(item['id'])
-            order_item = OrderItem(
-                order_id=order.id,
-                menu_item_id=menu_item.id,
-                quantity=item['quantity'],
-                price=menu_item.price,
-                notes=item.get('notes', '')
+        # Check if we're updating an existing order or creating a new one
+        if existing_order_id:
+            # We're adding items to an existing order
+            order = Order.query.get(existing_order_id)
+            if not order or order.status != 'active':
+                return jsonify({'error': 'Existing order not found or not active'}), 404
+            
+            # Calculate additional amount
+            additional_amount = 0
+            for item in items:
+                menu_item = MenuItem.query.get(item['id'])
+                if not menu_item:
+                    return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
+                additional_amount += menu_item.price * item['quantity']
+            
+            # Update total amount
+            original_amount = order.total_amount
+            order.total_amount += additional_amount
+            
+            # Add new order items
+            for item in items:
+                menu_item = MenuItem.query.get(item['id'])
+                order_item = OrderItem(
+                    order_id=order.id,
+                    menu_item_id=menu_item.id,
+                    quantity=item['quantity'],
+                    price=menu_item.price,
+                    notes=item.get('notes', '')
+                )
+                db.session.add(order_item)
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'order_id': order.id,
+                'updated': True,
+                'message': f'Added items to your existing order. Your new total is ₹{order.total_amount:.2f}.',
+                'original_amount': original_amount,
+                'additional_amount': additional_amount
+            })
+        else:
+            # Calculate total for new order
+            total_amount = 0
+            for item in items:
+                menu_item = MenuItem.query.get(item['id'])
+                if not menu_item:
+                    return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
+                total_amount += menu_item.price * item['quantity']
+            
+            # Create new dine-in order
+            order = Order(
+                name=data.get('name', 'Table Customer'),
+                email=data.get('email', 'table@example.com'),
+                phone=data.get('phone', '0000000000'),
+                order_type='dine-in',  # Changed to dine-in for table orders
+                table_number=int(table_id),
+                special_instructions=data.get('special_instructions', ''),
+                total_amount=total_amount,
+                payment_method='counter',  # Default to counter payment for dine-in
+                payment_status='pending',
+                status='active',  # Set as active instead of pending for dine-in orders
+                user_id=current_user.id if current_user.is_authenticated else None
             )
-            db.session.add(order_item)
             
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'order_id': order.id,
-            'message': 'Your takeaway order has been placed. Please pay using the QR code when picking up your order.'
-        })
+            db.session.add(order)
+            db.session.flush()  # To get the order ID
+            
+            # Add order items
+            for item in items:
+                menu_item = MenuItem.query.get(item['id'])
+                order_item = OrderItem(
+                    order_id=order.id,
+                    menu_item_id=menu_item.id,
+                    quantity=item['quantity'],
+                    price=menu_item.price,
+                    notes=item.get('notes', '')
+                )
+                db.session.add(order_item)
+            
+            # Update table status to Occupied
+            if table and table.status == 'Available':
+                table.status = 'Occupied'
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'order_id': order.id,
+                'updated': False,
+                'message': 'Your order has been placed. You can continue to add items until your table is closed.'
+            })
     
     @app.route('/takeaway', methods=['GET', 'POST'])
     def takeaway():

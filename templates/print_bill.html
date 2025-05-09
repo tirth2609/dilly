@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill - Table {{ order.table_number }} - Order #{{ order.id }}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .print-only {
+            display: none;
+        }
+        
+        .bill-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .restaurant-info {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 15px;
+        }
+        
+        .restaurant-info h1 {
+            margin: 0;
+            color: #4CAF50;
+            font-size: 24px;
+        }
+        
+        .restaurant-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .bill-header {
+            margin-bottom: 20px;
+        }
+        
+        .bill-header .row {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .bill-info {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .bill-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .bill-table th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .bill-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .bill-table .price {
+            text-align: right;
+        }
+        
+        .bill-total {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
+        }
+        
+        .bill-total .total-label {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .bill-total .total-amount {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .bill-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .actions {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+        
+        .btn:hover {
+            background-color: #45a049;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .bill-container {
+                box-shadow: none;
+                margin: 0;
+                padding: 15px;
+            }
+            
+            .actions {
+                display: none;
+            }
+            
+            .screen-only {
+                display: none;
+            }
+            
+            .print-only {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bill-container">
+        <div class="restaurant-info">
+            <h1>Dilly's Vegetarian Kitchen</h1>
+            <p>123 Main Street, City, State 123456</p>
+            <p>Phone: +1 234 567 8901</p>
+            <p>Email: info@dillysvegkitchen.com</p>
+        </div>
+        
+        <div class="bill-header">
+            <div class="row">
+                <div class="bill-info">
+                    <p><strong>Order #:</strong> {{ order.id }}</p>
+                    <p><strong>Date:</strong> {{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    {% if order.table_number %}
+                    <p><strong>Table:</strong> {{ order.table_number }}</p>
+                    {% endif %}
+                </div>
+                <div class="bill-info">
+                    <p><strong>Customer:</strong> {{ order.name }}</p>
+                    <p><strong>Phone:</strong> {{ order.phone }}</p>
+                    <p><strong>Email:</strong> {{ order.email }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <table class="bill-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th class="price">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ item.menu_item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(item.price) }}</td>
+                    <td class="price">₹{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="bill-total">
+            <div class="total-label">Total Amount:</div>
+            <div class="total-amount">₹{{ "%.2f"|format(order.total_amount) }}</div>
+        </div>
+        
+        {% if order.special_instructions %}
+        <div class="special-instructions" style="margin-top: 20px;">
+            <p><strong>Special Instructions:</strong></p>
+            <p>{{ order.special_instructions }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="bill-footer">
+            <p>Thank you for dining with us! We hope to see you again soon.</p>
+            <p class="print-only">Bill generated on {{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+        </div>
+        
+        <div class="actions screen-only">
+            <button class="btn" onclick="window.print()">Print Bill</button>
+            <a href="{{ url_for('admin_orders') }}" class="btn" style="background-color: #2196F3;">Back to Orders</a>
+        </div>
+    </div>
+</body>
+</html>
