@@ -465,7 +465,51 @@ def init_routes(app):
     @login_required
     @admin_required
     def admin_orders():
-        orders = Order.query.order_by(Order.created_at.desc()).all()
+        # Get filter parameters
+        order_type = request.args.get('type', 'all')
+        status = request.args.get('status', 'all')
+        
+        # Build query
+        query = Order.query
+        
+        # Apply filters
+        if order_type != 'all':
+            query = query.filter(Order.order_type == order_type)
+        
+        if status != 'all':
+            query = query.filter(Order.status == status)
+        
+        # Get all orders, sorted by creation date, latest first
+        orders = query.order_by(Order.created_at.desc()).all()
+        
+        # Get tables with active orders for quick access
+        tables_with_orders = db.session.query(Order.table_number).filter(
+            Order.order_type == 'dine-in',
+            Order.status.in_(['active', 'ready']),
+            Order.payment_status == 'pending'
+        ).distinct().all()
+        
+        active_tables = []
+        for table_num in tables_with_orders:
+            if table_num[0]:  # Check if table_number is not None
+                table = Table.query.filter_by(table_number=str(table_num[0])).first()
+                if table:
+                    # Get the active order for this table
+                    active_order = Order.query.filter_by(
+                        table_number=table_num[0],
+                        order_type='dine-in'
+                    ).filter(
+                        Order.status.in_(['active', 'ready']),
+                        Order.payment_status == 'pending'
+                    ).order_by(Order.id.desc()).first()
+                    
+                    if active_order:
+                        active_tables.append({
+                            'table': table,
+                            'order': active_order
+                        })
+        
+        # Get all categories for menu items
         categories = Category.query.order_by(Category.display_order).all()
         
         # Calculate today's revenue
@@ -484,9 +528,12 @@ def init_routes(app):
         
         return render_template('admin/orders.html', 
                               orders=orders,
+                              active_tables=active_tables,
                               categories=categories,
                               todays_revenue=f"{todays_revenue:.2f}",
                               avg_order_value=f"{avg_order_value:.2f}",
+                              order_type=order_type,
+                              status=status,
                               datetime=datetime)
     
     @app.route('/admin/orders/add', methods=['POST'])
@@ -568,7 +615,8 @@ def init_routes(app):
         flash(f'Order for {name} has been created successfully.', 'success')
         return redirect(url_for('admin_orders'))
     
-    @app.route('/admin/orders/update-status', methods=['POST'])
+    # /admin/orders/update - Update order status or mark payment as complete
+    @app.route('/admin/orders/update', methods=['POST'])
     @login_required
     @admin_required
     def admin_update_order_status():
@@ -578,6 +626,9 @@ def init_routes(app):
         
         order = Order.query.get_or_404(order_id)
         old_status = order.status
+        old_payment_status = order.payment_status
+        
+        # Update statuses
         order.status = new_status
         order.payment_status = payment_status
         
@@ -587,9 +638,18 @@ def init_routes(app):
             # Convert the integer to string for table lookup
             table_num_str = str(order.table_number)
             
-            # If status changed to completed, free the table
-            if new_status == 'completed' and old_status != 'completed':
+            # If payment status changed to completed, finalize and archive the order
+            if payment_status == 'completed' and old_payment_status != 'completed':
+                # Mark the order as completed when paid
+                order.status = 'completed'
+                new_status = 'completed'
                 should_update_table = True
+                flash(f'Order #{order_id} has been marked as paid and completed.', 'success')
+            
+            # If status changed to completed, free the table
+            elif new_status == 'completed' and old_status != 'completed':
+                should_update_table = True
+            
             # If status changed to cancelled, free the table  
             elif new_status == 'cancelled' and old_status != 'cancelled':
                 should_update_table = True
@@ -611,6 +671,13 @@ def init_routes(app):
         
         flash(f'Order #{order_id} status has been updated to {new_status}.', 'success')
         return redirect(url_for('admin_orders'))
+        
+    # For backward compatibility
+    @app.route('/admin/orders/update-status', methods=['POST'])
+    @login_required
+    @admin_required
+    def admin_update_order_status_legacy():
+        return admin_update_order_status()
     
     @app.route('/admin/orders/cancel', methods=['POST'])
     @login_required
@@ -1296,6 +1363,228 @@ def init_routes(app):
                               table=table,
                               datetime=datetime)
     
+    # /order/create - Create a new order or add to existing one for dine-in/takeaway
+    @app.route('/order/create', methods=['POST'])
+    def create_order():
+        data = request.json
+        order_type = data.get('order_type', 'takeaway')
+        table_id = data.get('table_id')
+        items = data.get('items', [])
+        
+        if not items:
+            return jsonify({'error': 'No items in order'}), 400
+        
+        # For dine-in orders, check if there's an active order for the table
+        if order_type == 'dine-in' and table_id:
+            # Get the table object
+            table = Table.query.filter_by(table_number=table_id).first()
+            if not table:
+                return jsonify({'error': 'Table not found'}), 404
+            
+            # Check for existing active order
+            existing_order = Order.query.filter_by(
+                table_number=int(table_id),
+                order_type='dine-in',
+                payment_status='pending'
+            ).filter(
+                Order.status.in_(['active', 'ready'])
+            ).order_by(Order.id.desc()).first()
+            
+            # If there's an existing order, add items to it
+            if existing_order:
+                return add_to_existing_order(existing_order, items)
+        
+        # If we reach here, create a new order
+        return create_new_order(data, items)
+    
+    # Helper function to add items to an existing order
+    def add_to_existing_order(order, items):
+        # Calculate additional amount
+        additional_amount = 0
+        for item in items:
+            menu_item = MenuItem.query.get(item['id'])
+            if not menu_item:
+                return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
+            additional_amount += menu_item.price * item['quantity']
+        
+        # Update total amount
+        original_amount = order.total_amount
+        order.total_amount += additional_amount
+        
+        # Add new order items
+        for item in items:
+            menu_item = MenuItem.query.get(item['id'])
+            order_item = OrderItem(
+                order_id=order.id,
+                menu_item_id=menu_item.id,
+                quantity=item['quantity'],
+                price=menu_item.price,
+                notes=item.get('notes', '')
+            )
+            db.session.add(order_item)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'order_id': order.id,
+            'updated': True,
+            'message': f'Added items to your existing order. Your new total is ₹{order.total_amount:.2f}.',
+            'original_amount': original_amount,
+            'additional_amount': additional_amount,
+            'total_amount': order.total_amount
+        })
+    
+    # Helper function to create a new order
+    def create_new_order(data, items):
+        # Calculate total for new order
+        total_amount = 0
+        for item in items:
+            menu_item = MenuItem.query.get(item['id'])
+            if not menu_item:
+                return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
+            total_amount += menu_item.price * item['quantity']
+        
+        order_type = data.get('order_type', 'takeaway')
+        
+        # Create new order
+        order = Order(
+            name=data.get('name', 'Customer'),
+            email=data.get('email', 'customer@example.com'),
+            phone=data.get('phone', '0000000000'),
+            order_type=order_type,
+            special_instructions=data.get('special_instructions', ''),
+            total_amount=total_amount,
+            payment_method=data.get('payment_method', 'counter'),
+            payment_status='pending',
+            status='active' if order_type == 'dine-in' else 'pending',
+            user_id=current_user.id if current_user.is_authenticated else None
+        )
+        
+        # Add table number for dine-in orders
+        if order_type == 'dine-in' and data.get('table_id'):
+            table_id = data.get('table_id')
+            order.table_number = int(table_id)
+            
+            # Update table status to Occupied
+            table = Table.query.filter_by(table_number=table_id).first()
+            if table and table.status == 'Available':
+                table.status = 'Occupied'
+        
+        db.session.add(order)
+        db.session.flush()  # To get the order ID
+        
+        # Add order items
+        for item in items:
+            menu_item = MenuItem.query.get(item['id'])
+            order_item = OrderItem(
+                order_id=order.id,
+                menu_item_id=menu_item.id,
+                quantity=item['quantity'],
+                price=menu_item.price,
+                notes=item.get('notes', '')
+            )
+            db.session.add(order_item)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'order_id': order.id,
+            'updated': False,
+            'message': f'Your order #{order.id} has been placed successfully.'
+        })
+    
+    # /order/add-to-existing/<table_id> - Add items to an open order for a table
+    @app.route('/order/add-to-existing/<table_id>', methods=['POST'])
+    def add_to_existing_table_order(table_id):
+        data = request.json
+        items = data.get('items', [])
+        
+        if not items:
+            return jsonify({'error': 'No items provided'}), 400
+            
+        # Get the table
+        table = Table.query.filter_by(table_number=table_id).first()
+        if not table:
+            return jsonify({'error': 'Table not found'}), 404
+            
+        # Find the active order for this table
+        existing_order = Order.query.filter_by(
+            table_number=int(table_id),
+            order_type='dine-in',
+            payment_status='pending'
+        ).filter(
+            Order.status.in_(['active', 'ready'])
+        ).order_by(Order.id.desc()).first()
+        
+        if not existing_order:
+            return jsonify({'error': 'No active order found for this table'}), 404
+            
+        # Add items to the existing order
+        return add_to_existing_order(existing_order, items)
+    
+    # /order/close/<order_id> - Close an order after payment
+    @app.route('/order/close/<int:order_id>', methods=['POST'])
+    @login_required
+    @admin_required
+    def close_order(order_id):
+        order = Order.query.get_or_404(order_id)
+        
+        # Check if order is already closed
+        if order.payment_status == 'completed':
+            return jsonify({'error': 'Order is already closed'}), 400
+            
+        # Mark as paid and completed
+        order.payment_status = 'completed'
+        order.status = 'completed'
+        
+        # If it's a dine-in order, update table status
+        if order.order_type == 'dine-in' and order.table_number:
+            table = Table.query.filter_by(table_number=str(order.table_number)).first()
+            if table and table.status == 'Occupied':
+                table.status = 'Available'
+                
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Order #{order_id} has been closed successfully.'
+        })
+    
+    # /order/status/<id> - Get current order status
+    @app.route('/order/status/<int:order_id>', methods=['GET'])
+    def get_order_status(order_id):
+        order = Order.query.get_or_404(order_id)
+        
+        # Get order items
+        items = []
+        for item in order.items:
+            menu_item = MenuItem.query.get(item.menu_item_id)
+            items.append({
+                'id': item.id,
+                'name': menu_item.name if menu_item else 'Unknown Item',
+                'quantity': item.quantity,
+                'price': item.price,
+                'total': item.price * item.quantity,
+                'notes': item.notes
+            })
+        
+        return jsonify({
+            'success': True,
+            'order': {
+                'id': order.id,
+                'status': order.status,
+                'payment_status': order.payment_status,
+                'total_amount': order.total_amount,
+                'created_at': order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'order_type': order.order_type,
+                'table_number': order.table_number,
+                'items': items
+            }
+        })
+    
+    # For backward compatibility with existing QR menu frontend
     @app.route('/qr-menu/order', methods=['POST'])
     def qr_menu_order():
         data = request.json
@@ -1303,107 +1592,18 @@ def init_routes(app):
         items = data.get('items', [])
         existing_order_id = data.get('existing_order_id')
         
-        if not items:
-            return jsonify({'error': 'No items in order'}), 400
+        # Add table ID to data
+        data['order_type'] = 'dine-in'
         
-        # Get table
-        table = Table.query.filter_by(table_number=table_id).first()
-        if not table:
-            return jsonify({'error': 'Table not found'}), 404
-        
-        # Check if we're updating an existing order or creating a new one
+        # If existing order was specified, use that
         if existing_order_id:
-            # We're adding items to an existing order
             order = Order.query.get(existing_order_id)
             if not order or order.status not in ['active', 'ready']:
                 return jsonify({'error': 'Existing order not found or not in an editable state'}), 404
-            
-            # Calculate additional amount
-            additional_amount = 0
-            for item in items:
-                menu_item = MenuItem.query.get(item['id'])
-                if not menu_item:
-                    return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
-                additional_amount += menu_item.price * item['quantity']
-            
-            # Update total amount
-            original_amount = order.total_amount
-            order.total_amount += additional_amount
-            
-            # Add new order items
-            for item in items:
-                menu_item = MenuItem.query.get(item['id'])
-                order_item = OrderItem(
-                    order_id=order.id,
-                    menu_item_id=menu_item.id,
-                    quantity=item['quantity'],
-                    price=menu_item.price,
-                    notes=item.get('notes', '')
-                )
-                db.session.add(order_item)
-            
-            db.session.commit()
-            
-            return jsonify({
-                'success': True,
-                'order_id': order.id,
-                'updated': True,
-                'message': f'Added items to your existing order. Your new total is ₹{order.total_amount:.2f}.',
-                'original_amount': original_amount,
-                'additional_amount': additional_amount,
-                'total_amount': order.total_amount
-            })
-        else:
-            # Calculate total for new order
-            total_amount = 0
-            for item in items:
-                menu_item = MenuItem.query.get(item['id'])
-                if not menu_item:
-                    return jsonify({'error': f'Menu item {item["id"]} not found'}), 400
-                total_amount += menu_item.price * item['quantity']
-            
-            # Create new dine-in order
-            order = Order(
-                name=data.get('name', 'Table Customer'),
-                email=data.get('email', 'table@example.com'),
-                phone=data.get('phone', '0000000000'),
-                order_type='dine-in',  # Changed to dine-in for table orders
-                table_number=int(table_id),
-                special_instructions=data.get('special_instructions', ''),
-                total_amount=total_amount,
-                payment_method='counter',  # Default to counter payment for dine-in
-                payment_status='pending',
-                status='active',  # Set as active instead of pending for dine-in orders
-                user_id=current_user.id if current_user.is_authenticated else None
-            )
-            
-            db.session.add(order)
-            db.session.flush()  # To get the order ID
-            
-            # Add order items
-            for item in items:
-                menu_item = MenuItem.query.get(item['id'])
-                order_item = OrderItem(
-                    order_id=order.id,
-                    menu_item_id=menu_item.id,
-                    quantity=item['quantity'],
-                    price=menu_item.price,
-                    notes=item.get('notes', '')
-                )
-                db.session.add(order_item)
-            
-            # Update table status to Occupied
-            if table and table.status == 'Available':
-                table.status = 'Occupied'
-            
-            db.session.commit()
-            
-            return jsonify({
-                'success': True,
-                'order_id': order.id,
-                'updated': False,
-                'message': 'Your order has been placed. You can continue to add items until your table is closed.'
-            })
+            return add_to_existing_order(order, items)
+        
+        # Otherwise create new order
+        return create_new_order(data, items)
     
     @app.route('/takeaway', methods=['GET', 'POST'])
     def takeaway():
