@@ -9,6 +9,6 @@ pillow
 Flask-wtf
 wtforms
 python-dotenv
-psycopg2
+psycopg2-binary
 email-validator
 jinja2
