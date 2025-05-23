@@ -1,0 +1,14 @@
+Flask
+SQLAlchemy
+Flask-Login
+Werkzeug
+Flask-sqlalchemy
+Gunicorn
+qrcode
+pillow
+Flask-wtf
+wtforms
+python-dotenv
+psycopg2
+email-validator
+jinja2

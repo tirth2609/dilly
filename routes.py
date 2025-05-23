@@ -1736,47 +1736,52 @@ def init_routes(app):
             })
             
         return jsonify(result)
-    
+
+    @app.route('/api/cart', methods=['GET'])
+    def get_cart():
+        cart = session.get('cart', [])
+
+        return jsonify({
+            'success': True,
+            'cart': cart
+        })
+
     @app.route('/api/cart/add', methods=['POST'])
     def add_to_cart():
         data = request.json
-        item_id = data.get('id')
-        quantity = data.get('quantity', 1)
-        notes = data.get('notes', '')
-        
+        try:
+            item_id = int(data.get('id'))
+            quantity = int(data.get('quantity', 1))
+            notes = data.get('notes', '')
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid input format'}), 400
+
         if not item_id:
             return jsonify({'error': 'Item ID is required'}), 400
-            
+
         menu_item = MenuItem.query.get(item_id)
         if not menu_item:
             return jsonify({'error': 'Menu item not found'}), 404
-            
+
         cart = session.get('cart', [])
-        
-        # Check if item already in cart
-        item_index = None
-        for i, item in enumerate(cart):
+
+        for item in cart:
             if item['id'] == item_id:
-                item_index = i
+                item['quantity'] += quantity
+                if notes:
+                    item['notes'] = notes
                 break
-                
-        if item_index is not None:
-            # Update existing item
-            cart[item_index]['quantity'] += quantity
-            if notes:
-                cart[item_index]['notes'] = notes
         else:
-            # Add new item
             cart.append({
                 'id': item_id,
                 'name': menu_item.name,
-                'price': menu_item.price,
+                'price': float(menu_item.price),
                 'quantity': quantity,
                 'notes': notes
             })
-            
+
         session['cart'] = cart
-        
+
         return jsonify({
             'success': True,
             'cart': cart,
@@ -1844,14 +1849,7 @@ def init_routes(app):
             'message': 'Cart cleared'
         })
     
-    @app.route('/api/cart', methods=['GET'])
-    def get_cart():
-        cart = session.get('cart', [])
-        
-        return jsonify({
-            'success': True,
-            'cart': cart
-        })
+
     
     @app.route('/api/check-time-slots', methods=['POST'])
     def check_time_slots():

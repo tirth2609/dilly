@@ -6,6 +6,10 @@ from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
+from dotenv import load_dotenv
+
+
+load_dotenv()  # Automatically loads .env from root
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -20,15 +24,16 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 
 # Set a hard-coded secret key for development
-SECRET_KEY = "dillysvegkitchen2023secretkey"
-app.secret_key = SECRET_KEY
+SECRET_KEY = os.getenv("SECRET_KEY")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 
 # Also set it in config for compatibility with extensions
 app.config["SECRET_KEY"] = SECRET_KEY
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
@@ -45,6 +50,7 @@ app.config['WTF_CSRF_ENABLED'] = False
 
 # Import models needed for user loader
 from models import User, MenuItem, Category, Reservation, BanquetBooking, Order, OrderItem
+
 
 # Initialize Flask-Login
 login_manager = LoginManager()

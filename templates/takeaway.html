@@ -5,7 +5,7 @@
 {% block extra_css %}
 <style>
     .menu-filters {
-        position: sticky;
+
         top: 90px;
         z-index: 10;
         background-color: #fff;
@@ -276,7 +276,7 @@
                             <h5 id="cart-total">₹0.00</h5>
                         </div>
                         
-                        <button class="btn btn-primary w-100" id="proceed-to-checkout-btn" disabled>Place Order</button>
+                        <button class="btn btn-primary w-100" id="proceed-to-checkout-btn" >Place Order</button>
                     </div>
                 </div>
             </div>
@@ -328,22 +328,26 @@
                             </div>
                             
                             <div class="mb-4">
-                                <h5>Payment Method (At Pickup)</h5>
-                                <p class="text-muted small mb-3">Select how you would like to pay when you pick up your order</p>
-                                <div class="mb-3">
-                                    <div class="form-check mb-2">
-                                        {{ form.payment_method(class="form-check-input", id="payment_counter", value="counter", checked=true) }}
-                                        <label class="form-check-label" for="payment_counter">
-                                            <i class="fas fa-cash-register me-2"></i> Pay at Counter when picking up
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        {{ form.payment_method(class="form-check-input", id="payment_qr_code", value="qr_code") }}
-                                        <label class="form-check-label" for="payment_qr_code">
-                                            <i class="fas fa-qrcode me-2"></i> QR Code Payment when picking up
-                                        </label>
-                                    </div>
-                                </div>
+  <h5 class="fw-bold text-brown">Payment Method (At Pickup)</h5>
+  <p class="text-muted">Select how you would like to pay when you pick up your order</p>
+
+  <div class="form-check d-flex align-items-center mb-3">
+    <input class="form-check-input me-2" type="radio" name="paymentMethod" id="payCounter" value="counter" checked>
+    <label class="form-check-label" for="payCounter">
+      Pay at Counter when picking up
+    </label>
+  </div>
+
+  <div class="form-check d-flex align-items-center">
+    <input class="form-check-input me-2" type="radio" name="paymentMethod" id="payQR" value="qr">
+    <label class="form-check-label" for="payQR">
+      QR Code Payment when picking up
+    </label>
+  </div>
+</div>
+
+
+
                                 
                                 <div class="card border d-none" id="upi-payment-section">
                                     <div class="card-body text-center">

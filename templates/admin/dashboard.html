@@ -60,7 +60,7 @@
         width: 2px;
         background-color: #e9ecef;
     }
-    
+
     .timeline-item {
         position: relative;
         padding-bottom: 1.5rem;
@@ -100,15 +100,7 @@
         </button>
     </div>
 </div>
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="mb-0">Dashboard</h3>
-                    <div>
-                        <span class="text-muted me-2">{{ datetime.now().strftime('%B %d, %Y') }}</span>
-                        <button class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-sync-alt me-1"></i> Refresh
-                        </button>
-                    </div>
-                </div>
+
                 
                 <!-- Statistics Cards -->
                 <div class="row mb-4">
@@ -146,7 +138,7 @@
                                     </div>
                                     <div class="flex-grow-1 ms-3">
                                         <h6 class="text-muted mb-0">Total Revenue</h6>
-                                        <h3 class="mb-0">₹{{ stats.revenue }}</h3>
+                                         <h3 class="mb-0">₹{{ stats.revenue }}</h3>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
@@ -339,14 +331,11 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block admin_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-<script>
+ <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Revenue chart
         const revenueCtx = document.getElementById('revenueChart').getContext('2d');
@@ -393,7 +382,8 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: function(value, index, values) {
+                            callback: function(value, index, values)
+                            {
                                 return '₹' + value.toLocaleString();
                             }
                         }
@@ -427,5 +417,5 @@
             }
         });
     });
-</script>
+ </script>
 {% endblock %}

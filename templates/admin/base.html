@@ -19,6 +19,91 @@
 {% block admin_extra_css %}{% endblock %}
 {% endblock %}
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Your usual head stuff -->
+  <style>
+    /* Loading Screen CSS */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #FFF8E6;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .loading-spinner {
+      width: 100px;
+      height: 100px;
+      border: 12px solid #FFF8DC;
+      border-top: 12px solid #FF8C00;
+      border-radius: 50%;
+      animation: spin 1.8s linear infinite;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 15px #FF8C00;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    .loading-text {
+      font-weight: 700;
+      font-size: 1.8rem;
+      color: #8B4513;
+      animation: fadeSlideUp 1.2s ease forwards;
+    }
+    .loading-subtext {
+      font-weight: 500;
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+      color: #a0522d;
+      animation: fadeSlideUp 1.5s ease forwards;
+      animation-delay: 0.4s;
+      opacity: 0;
+    }
+    @keyframes fadeSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-spinner" aria-label="Loading animation"></div>
+    <div class="loading-text">Dilly’s Veg Kitchen</div>
+    <div class="loading-subtext">Cooking up your experience...</div>
+  </div>
+
+  <!-- Your page content here -->
+
+
+  <script>
+    window.addEventListener('load', function() {
+      const loader = document.getElementById('loading-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          loader.style.display = 'none';
+        }, 500);
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row">

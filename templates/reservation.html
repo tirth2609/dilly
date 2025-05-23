@@ -20,7 +20,7 @@
     
     .time-slot.selected {
         background-color: var(--accent-color);
-        color: white;
+        color: #ff8c00;
         border-color: var(--accent-color);
     }
     
@@ -32,6 +32,7 @@
     
     .reservation-image {
         height: 100%;
+        background-image: url('static/images/r1.jpg');
         object-fit: cover;
         border-radius: var(--border-radius);
     }
@@ -45,14 +46,22 @@
         <div class="row align-items-center">
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <h1 class="display-4 mb-3">Book a Table</h1>
-                <p class="lead">Reserve your table at Dilly's Veg Kitchen for a memorable dining experience.</p>
+                <p class="lead">Reserve your seat at Dilly's Veg Kitchen for an unforgettable vegetarian dining experience.</p>
+                <p>Whether you're planning an intimate dinner or a cheerful gathering, our cozy, plant-filled ambiance sets the perfect tone. From aromatic spices to artfully plated meals, every table here tells a story—make yours memorable.</p>
+                <ul class="list-unstyled mt-3">
+                    <li>👉 <strong>Online reservations</strong> are quick and confirmed instantly.</li>
+                    <li>👉 <strong>Prefer walk-ins?</strong> We’ve got a few tables just for you.</li>
+                </ul>
+                <p class="mt-3">Ready to dine with us? Book now and let us take care of the rest.</p>
             </div>
             <div class="col-lg-6">
-                <img src="https://pixabay.com/get/g360bc9d38405227a148970fdb3644d5e9e8291d31e35527f27ac46545fdd8f6f842bb37d4f0b3fa26b45c0f3cf2dec6844c28e9f01676cba3d8885d1679aec59_1280.jpg" alt="Restaurant Interior" class="img-fluid rounded shadow">
+                <img src="static/images/r1.jpg" alt="Restaurant Interior" class="img-fluid rounded shadow">
             </div>
         </div>
     </div>
 </section>
+
+
 
 <!-- Reservation Form Section -->
 <section class="py-5">
@@ -158,10 +167,7 @@
                     </div>
                 </div>
                 
-                <!-- Restaurant Ambiance Image -->
-                <div class="d-none d-lg-block">
-                    <img src="https://pixabay.com/get/g5a6d87691f4b32deb0758ca01584d77d1590ceb7085a796ad6ff28e8598a6f31b205dd22492aef1273272c3396986e37785d257b9b8102f151a7b96a255c582b_1280.jpg" alt="Restaurant Ambiance" class="img-fluid rounded shadow reservation-image">
-                </div>
+
             </div>
         </div>
     </div>
